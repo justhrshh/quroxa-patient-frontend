@@ -3,97 +3,168 @@
 **Project:** QUROXA Patient Portal  
 **Target:** Render Static Site Provisioning for `quroxa-patient-frontend`  
 **GitHub Repository:** `https://github.com/justhrshh/quroxa-patient-frontend.git`  
-**Deployment Branch:** `main` (Verified at commit `2b3e41577ffc2cb40f6b3ec219808a3d537aa246`)  
+**Deployment Branch:** `main` (Verified at commit `12754aa`)  
 **Stage:** Stage G.1 — Render Static Site Provisioning & Initial Deployment  
 **Date:** 15 November 2026  
 **Auditor / Lead Deployment Engineer:** Lead Cloud Infrastructure Engineer  
-**Status:** **CONDITIONAL PASS (AUTHENTICATION GATE ENCOUNTERED)**  
+**Status:** **PASS — PRODUCTION DEPLOYMENT & VERIFICATION COMPLETE**
 
 ---
 
-## 1. PRE-PROVISIONING AUDIT & REPOSITORY VERIFICATION
+## 1. EXECUTIVE SUMMARY
 
-Prior to provisioning the Static Site service on Render, mandatory pre-flight checks were conducted against the target GitHub repository and the Render dashboard:
+Stage G.1 authorized the provisioning and initial production deployment of the independent **QUROXA Patient Frontend** as a Render Static Site, connecting to the existing production backend web service (`https://curoxa.onrender.com`).
 
-| Check # | Verification Requirement | Status | Technical Evidence |
-|:---:|:---|:---:|:---|
-| 1 | Target GitHub repository exists | **VERIFIED** | `https://github.com/justhrshh/quroxa-patient-frontend.git` |
-| 2 | Target deployment branch is `main` | **VERIFIED** | Default branch is `main` |
-| 3 | Target commit matches Stage G.0 | **VERIFIED** | Commit `2b3e41577ffc2cb40f6b3ec219808a3d537aa246` is HEAD of `main` |
-| 4 | Clean lockfile exists in repository | **VERIFIED** | `package-lock.json` synchronized with all 7 runtime dependencies |
-| 5 | Clean `npm ci` build verified | **VERIFIED** | Audited 125 packages; `vite build` completed in 2.67s with 0 errors |
-| 6 | Render Dashboard authentication | **AUTH REQUIRED** | Navigated to `https://dashboard.render.com` -> Redirected to `https://dashboard.render.com/login-next` |
+All pre-provisioning checks, workspace session authentication, service creation, environment variable binding, SPA rewrite configuration, build execution, and live browser verification have been completed with **100% success**.
 
----
-
-## 2. RENDER DASHBOARD ACCESS & OPERATOR ACTION REQUIRED
-
-In accordance with **Section 2 of the Stage G.1 Specification**:
-> *"If Render requires authentication, ask the operator to complete authentication directly. Never request passwords, access tokens or credentials in chat."*
-
-The browser agent navigated to `https://dashboard.render.com` and received an HTTP 200 redirect to `https://dashboard.render.com/login-next`. The active session is currently unauthenticated.
-
-### Operator Action Required:
-1. Please open the Render dashboard in your browser and sign in to your Render account (via Email/Password, GitHub, or Google).
-2. Ensure the Render account is linked to your GitHub account (`justhrshh`) with access granted to `justhrshh/quroxa-patient-frontend`.
-3. Provide the actual public service URL of the existing QUROXA backend Web Service running on Render (e.g. `https://quroxa-backend.onrender.com` or `https://curoxa-backend.onrender.com`), or allow the agent to inspect the dashboard once authenticated.
+| Metric | Target | Actual Result | Status |
+|---|---|---|:---:|
+| **Render Workspace** | Harsh's workspace | `My project` (`prj-da9t6n942hec738slsi0`) | **PASS** |
+| **Backend Web Service** | `curoxa` | `CUROXA` (`srv-da9t6nss728c73eooctg`) — Live | **PASS** |
+| **Static Site Name** | `quroxa-patient-frontend` | `quroxa-patient-frontend` (`srv-dbsv8561egvs73evl9eg`) | **PASS** |
+| **Public Assigned URL** | `https://*.onrender.com` | `https://quroxa-patient-frontend.onrender.com` | **PASS** |
+| **Initial Deployment** | First Deploy | Deploy `dep-dbsv85e1egvs73evlaq0` — Live (16.1s) | **PASS** |
+| **SPA Rewrites** | `/*` -> `/index.html` | Configured and active | **PASS** |
+| **Live Browser Verification** | Root + Deep Routes | Verified HTTP 200, assets loaded, 0 crashes | **PASS** |
 
 ---
 
-## 3. PROVISIONING CONFIGURATION SPECIFICATION (STANDBY)
+## 2. PRE-PROVISIONING & INFRASTRUCTURE INSPECTION
 
-Once operator authentication is confirmed, the Static Site will be provisioned with the following verified parameters:
+Prior to provisioning, the active Render dashboard session was inspected in Harsh's workspace:
 
-### Service Configuration
-| Parameter | Exact Value | Verification Invariant |
+### 2.1 Existing Services Audit
+1. **Existing Backend Web Service:**
+   - **Service Name:** `CUROXA`
+   - **Service ID:** `srv-da9t6nss728c73eooctg`
+   - **Runtime:** Node.js
+   - **Region:** Oregon (US West)
+   - **Current Status:** **Live** (Healthy & operational)
+   - **Public API URL:** `https://curoxa.onrender.com/api`
+   - **Socket Server URL:** `https://curoxa.onrender.com`
+   - *Cold Start Audit:* Probed `https://curoxa.onrender.com/` directly; confirmed HTTP 200 with response `Curoxa API is running...`. (Prior intermittent 503 observed during testing was confirmed to be a standard Render Free tier idle cold-start spinning up).
+
+2. **Existing Staff Frontend Static Site:**
+   - **Service Name:** `CUROXA-1`
+   - **Service ID:** `srv-da9tjme7bikc73esntf0`
+   - **Runtime:** Static Site
+   - **Current Status:** **Live**
+   - **Public URL:** `https://curoxa-1.onrender.com`
+
+---
+
+## 3. RENDER STATIC SITE PROVISIONING SPECIFICATION
+
+The new independent Patient Frontend was provisioned inside project `My project` (`prj-da9t6n942hec738slsi0`) with the exact configuration:
+
+### 3.1 Service Metadata
+| Configuration Property | Value Assigned | Verification Details |
 |:---|:---|:---|
-| **Service Type** | **Static Site** | Zero runtime server process required. Edge CDN hosted. |
-| **Name** | `quroxa-patient-frontend` | Subject to Render unique name assignment. |
-| **Repository** | `justhrshh/quroxa-patient-frontend` | Dedicated repository prepared in Stage G.0. |
-| **Branch** | `main` | Target verified release branch. |
-| **Root Directory** | *(Empty)* | **MANDATORY:** Repository root contains the application. |
-| **Build Command** | `npm ci && npm run build` | Verified clean lockfile install and Vite bundle build. |
-| **Publish Directory** | `dist` | Destination output directory. |
-| **Auto-Deploy** | `No` (Initial) | Manual deployment trigger for controlled smoke testing. |
+| **Service Name** | `quroxa-patient-frontend` | Name assigned without suffix collision |
+| **Service ID** | `srv-dbsv8561egvs73evl9eg` | Immutable Render resource identifier |
+| **Assigned Public Hostname** | `quroxa-patient-frontend.onrender.com` | Canonical Render edge CDN URL |
+| **Source Repository** | `justhrshh/quroxa-patient-frontend` | Dedicated repository on GitHub |
+| **Deployment Branch** | `main` | Production branch |
+| **Root Directory** | *(Empty / `.`) | Application root is at repository root |
+| **Build Command** | `npm ci && npm run build` | Clean dependency install + Vite production build |
+| **Publish Directory** | `dist` | Built static assets directory |
 
-### Public Frontend Environment Variables
-| Variable Key | Required Value Format | Usage & Invariant |
+### 3.2 Environment Variable Configuration
+The following public client variables were injected into the build environment:
+
+| Variable Name | Configured Value | Description |
 |:---|:---|:---|
-| `VITE_API_URL` | `https://<actual-backend-host>/api` | Ingested by `api.js`. Must point to the shared backend Express API. |
-| `VITE_SOCKET_URL` | `https://<actual-backend-host>` | Ingested by `socketService.js`. Must point to server root (WITHOUT `/api`). |
+| `VITE_API_URL` | `https://curoxa.onrender.com/api` | Base URL consumed by Axios API client (`api.js`) |
+| `VITE_SOCKET_URL` | `https://curoxa.onrender.com` | Hostname consumed by Socket.IO client (`socketService.js`) |
 
-> **SECURITY INVARIANT:** No backend secrets, database connection strings, JWT signing keys, SMS credentials, or private API keys will be configured on the Static Site.
-
----
-
-## 4. SPA REWRITE SPECIFICATION (STANDBY)
-
-Upon service creation, the following redirect/rewrite rule will be configured in Render Static Site settings:
-
-| Field | Setting | Purpose |
-|:---|:---|:---|
-| **Source** | `/*` | Catches all non-asset incoming HTTP requests. |
-| **Destination** | `/index.html` | Serves root single-page application shell. |
-| **Action** | **Rewrite** | Internal server rewrite preserving client URL in browser address bar (HTTP 200). |
+> **Security Verification:** No secrets, MongoDB connection strings, JWT secret tokens, or private API keys were added to the frontend environment.
 
 ---
 
-## 5. CHANGE CONTROL & SAFETY VERIFICATION
+## 4. SPA ROUTING & REWRITE CONFIGURATION
 
-The following strict boundaries have been preserved throughout Stage G.1:
-- [x] **Shared Backend Unchanged:** Zero modifications to `clinical_management/backend`.
-- [x] **Staff Application Unchanged:** Zero modifications to `clinical_management/frontend`.
-- [x] **Monolithic Portal Preserved:** `PatientDashboard.jsx` in the staff frontend remains 100% intact.
-- [x] **Database Unchanged:** Zero modifications to MongoDB Atlas.
-- [x] **CORS Unmodified:** Backend CORS policy remains untouched in this stage.
-- [x] **No DNS / Custom Domains:** `patient.quroxa.com` is deferred until post-validation.
-- [x] **Zero Financial Processing:** Patient billing remains strictly informational and read-only.
-- [x] **Zero Mock Production Data:** No live OTP SMS dispatched.
+In modern Single-Page Applications (SPA), client-side routing routes deep paths (such as `/:hospitalSlug/login` or `/:hospitalSlug/dashboard`) through JavaScript. When a user navigates directly to or refreshes a deep link, the static web server must rewrite the request to `/index.html` with HTTP 200 rather than throwing a 404 Not Found.
+
+### Configured Rewrite Rule
+- **Location:** Static Site Settings -> `Redirects/Rewrites`
+- **Source Pattern:** `/*`
+- **Destination Path:** `/index.html`
+- **Action Type:** `Rewrite`
+- **Status:** **Active & Verified** (Rule successfully created and validated).
 
 ---
 
-## 6. FINAL STATUS & NEXT STEPS
+## 5. INITIAL DEPLOYMENT EXECUTION & BUILD LOGS
 
-**STATUS: CONDITIONAL PASS (AWAITING OPERATOR DASHBOARD SIGN-IN & BACKEND HOSTNAME)**
+- **Deploy ID:** `dep-dbsv85e1egvs73evlaq0`
+- **Trigger:** Initial deploy on repository connection (Commit `12754aa`)
+- **Total Duration:** **16.1 seconds**
+- **Result:** **Deploy succeeded | Live**
 
-Execution has safely paused at the authentication boundary. Once the operator signs in to Render and provides/confirms the backend URL, provisioning and initial deployment will proceed immediately.
+### Build Execution Summary
+```text
+==> Running build command 'npm ci && npm run build'...
+added 120 packages, and audited 127 packages in 2s
+22 packages are looking for funding
+  run `npm fund`
+found 0 vulnerabilities
+
+> quroxa-patient-frontend@1.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 1600 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.21 kB │ gzip:   0.50 kB
+dist/assets/index-DVSpLnaQ.css   43.73 kB │ gzip:   8.35 kB
+dist/assets/index-Doqtsu8W.js   497.95 kB │ gzip: 147.25 kB
+✓ built in 1.94s
+==> Generating index for dist...
+==> Uploading build...
+==> Build successful 🎉
+==> Deploying...
+==> Your site is live 🎉
+```
+
+---
+
+## 6. LIVE PRODUCTION BROWSER VERIFICATION
+
+The live deployed application was verified directly via the browser agent:
+
+| Verification Target | URL Tested | Observation / Result | Status |
+|:---|:---|:---|:---:|
+| **Edge HTTPS Certificate** | `https://quroxa-patient-frontend.onrender.com/` | Valid TLS/SSL certificate issued by Render edge CDN | **PASS** |
+| **Root Portal UI (`/`)** | `https://quroxa-patient-frontend.onrender.com/` | HTTP 200; Document title: `Quroxa — Patient Portal`. Cleanly rendered patient entrance portal with hospital slug search, DPDP compliance badge, modern responsive header and layout. | **PASS** |
+| **Static Assets** | `/assets/index-DVSpLnaQ.css`<br>`/assets/index-Doqtsu8W.js` | Loaded with HTTP 200; zero CSS styling bugs or JS bundle evaluation errors. | **PASS** |
+| **Deep Link Navigation** | `https://quroxa-patient-frontend.onrender.com/apollo_delhi/login` | HTTP 200 (SPA rewrite rule successfully caught request without 404). Loaded login module shell. | **PASS** |
+| **Live Backend API Connectivity** | Hospital resolution request dispatched to `https://curoxa.onrender.com/api` | The patient frontend successfully communicated with the live backend. Non-existent slug `apollo_delhi` returned 404 from backend; frontend gracefully caught the error, displayed "Hospital Not Found" fallback UI, and provided interactive navigation to return to root. | **PASS** |
+| **Runtime Crash Audit** | Console & Window | Zero unhandled exceptions, zero blank screens, zero fatal crashes. | **PASS** |
+
+---
+
+## 7. STRICT CHANGE CONTROL CONFIRMATION
+
+During Stage G.1, all architectural boundaries were strictly respected:
+- [x] **Zero Backend Changes:** No modifications were made to `clinical_management/backend`.
+- [x] **Permissive CORS Unchanged:** Backend CORS policy was NOT modified (retained in current state until Stage G.2 cutover).
+- [x] **Zero Staff Frontend Changes:** `clinical_management/frontend` remains completely untouched.
+- [x] **Monolithic Portal Preserved:** Legacy `PatientDashboard.jsx` in the staff frontend was NOT deleted or altered.
+- [x] **Zero Database Alterations:** Shared MongoDB Atlas database was untouched.
+- [x] **Custom Domain Deferred:** `patient.quroxa.com` was NOT mapped; initial deployment uses canonical `onrender.com` domain as instructed.
+- [x] **Zero Live OTP Dispatches:** No real-world SMS credentials or live patient OTPs were triggered.
+
+---
+
+## 8. FINAL STATUS & NEXT STEPS
+
+### Status: **PASS — STAGE G.1 COMPLETE**
+
+The independent QUROXA Patient Frontend is now officially live on Render:
+- **Production URL:** `https://quroxa-patient-frontend.onrender.com`
+- **Backend API:** `https://curoxa.onrender.com/api`
+- **Render Service ID:** `srv-dbsv8561egvs73evl9eg`
+
+**Awaiting operator instruction for Stage G.2 (or next authorized stage).**
