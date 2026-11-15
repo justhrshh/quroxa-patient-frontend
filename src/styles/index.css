@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-heading: "Outfit", "Plus Jakarta Sans", sans-serif;
+
+  /* Primary Brand Palette */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Accent Healthcare Cyan */
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
+
+  /* Semantic Feedback Colors */
+  --color-success-500: #10b981;
+  --color-warning-500: #f59e0b;
+  --color-danger-500: #ef4444;
+
+  /* Elevation Shadows */
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-float: 0 10px 25px -5px rgba(37, 99, 235, 0.08), 0 8px 10px -6px rgba(37, 99, 235, 0.04);
+  --shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+}
+
+/* Custom Base Utility Styles */
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Accessible focus ring utility */
+.focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+/* Smooth glass effect for floating headers and cards */
+.glass-surface {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}

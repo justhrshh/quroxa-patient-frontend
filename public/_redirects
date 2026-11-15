@@ -1,0 +1,3 @@
+# Render Static Site SPA rewrite rule
+# Route all non-file browser requests to index.html with a 200 status
+/*    /index.html   200
