@@ -2,10 +2,10 @@ import React from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { usePortalBranding, HospitalBrandLogo } from '../../context/PortalBrandingContext';
-import { ShieldCheck, User, LogOut, HeartPulse, Receipt, Settings } from 'lucide-react';
+import { ShieldCheck, User, LogOut, HeartPulse, Building2 } from 'lucide-react';
 
 export const PatientHeader = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, switchHospital, globalLogout } = useAuth();
   const { hospital } = usePortalBranding();
   const { hospitalSlug } = useParams();
   const location = useLocation();
@@ -13,11 +13,12 @@ export const PatientHeader = () => {
 
   const handleLogout = () => {
     logout();
-    if (hospitalSlug) {
-      navigate(`/${hospitalSlug}/login`);
-    } else {
-      navigate('/');
-    }
+    navigate('/login');
+  };
+
+  const handleSwitchHospital = () => {
+    switchHospital();
+    navigate('/portal');
   };
 
   const portalBasePath = hospitalSlug ? `/${hospitalSlug}` : '';
@@ -90,6 +91,17 @@ export const PatientHeader = () => {
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
             <div className="flex items-center gap-2">
+              {/* All Hospitals switcher button */}
+              <button
+                type="button"
+                onClick={handleSwitchHospital}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200/60 transition text-xs font-bold"
+                title="Return to Central Portal to Switch Hospital"
+              >
+                <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                <span className="hidden sm:inline">All Hospitals</span>
+              </button>
+
               <Link
                 to={`${portalBasePath}/profile`}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/80 border border-slate-200/50 hover:bg-slate-200/60 transition group"

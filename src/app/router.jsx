@@ -1,15 +1,16 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useParams } from 'react-router-dom';
 import { PortalBrandingProvider } from '../context/PortalBrandingContext';
-import { ProtectedRoute } from '../context/AuthContext';
+import { ProtectedRoute, GlobalProtectedRoute } from '../context/AuthContext';
 import PatientLayout from '../components/layout/PatientLayout';
 
-// Auth Pages
-import HospitalSelectPage from '../pages/auth/HospitalSelectPage';
-import LoginPage from '../pages/auth/LoginPage';
-import RegistrationPage from '../pages/auth/RegistrationPage';
+// Global Auth & Portal Pages (Phase H MVP)
+import GlobalLoginPage from '../pages/auth/GlobalLoginPage';
+import ProfileSelectPage from '../pages/auth/ProfileSelectPage';
+import GlobalPortalPage from '../pages/portal/GlobalPortalPage';
 
-// Feature Pages
+// Hospital Feature Pages
+import RegistrationPage from '../pages/auth/RegistrationPage';
 import OverviewPage from '../pages/dashboard/OverviewPage';
 import AppointmentsPage from '../pages/appointments/AppointmentsPage';
 import BookAppointmentPage from '../pages/appointments/BookAppointmentPage';
@@ -21,20 +22,48 @@ import ProfilePage from '../pages/profile/ProfilePage';
 import PrivacyConsentPage from '../pages/privacy/PrivacyConsentPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
+/**
+ * Backward compatibility redirect:
+ * /:hospitalSlug/login -> /login?redirectHospital=:hospitalSlug
+ */
+const HospitalLoginRedirect = () => {
+  const { hospitalSlug } = useParams();
+  const safeSlug = (hospitalSlug || '').replace(/[^a-z0-9_-]/gi, '');
+  return <Navigate to={`/login?redirectHospital=${encodeURIComponent(safeSlug)}`} replace />;
+};
+
 export const router = createBrowserRouter([
-  // Root route: Hospital selection directory entry
+  // Central Global QUROXA Patient Entry Routes (Phase H)
   {
     path: '/',
     element: <PatientLayout />,
     children: [
       {
         index: true,
-        element: <HospitalSelectPage />
+        element: <GlobalLoginPage />
+      },
+      {
+        path: 'login',
+        element: <GlobalLoginPage />
+      },
+      {
+        path: 'select-profile',
+        element: <ProfileSelectPage />
       }
     ]
   },
 
-  // Hospital-scoped portal routes
+  // Authenticated Central Global Patient Portal
+  {
+    path: '/portal',
+    element: (
+      <GlobalProtectedRoute>
+        <GlobalPortalPage />
+      </GlobalProtectedRoute>
+    )
+  },
+
+  // Hospital-scoped clinical portal routes (Preserved Stage D Architecture)
   {
     path: '/:hospitalSlug',
     element: (
@@ -53,7 +82,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'login',
-        element: <LoginPage />
+        element: <HospitalLoginRedirect />
       },
       {
         path: 'register',
