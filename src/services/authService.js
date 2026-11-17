@@ -206,6 +206,46 @@ export const authService = {
       mobile
     });
     return response.data;
+  },
+
+  /**
+   * Refreshes the Global Patient Session (Scope A) using HttpOnly cookie.
+   */
+  async refreshGlobalToken() {
+    const response = await api.post('/auth/patient-portal/global/refresh');
+    return response.data;
+  },
+
+  /**
+   * Refreshes the Hospital Clinical Session (Scope B) using HttpOnly cookie.
+   */
+  async refreshHospitalToken() {
+    const response = await api.post('/auth/patient-portal/refresh');
+    return response.data;
+  },
+
+  /**
+   * Ends the Hospital Clinical Session (Scope B) while preserving Global Session.
+   */
+  async leaveHospitalSession() {
+    try {
+      const response = await api.post('/auth/patient-portal/hospital/leave');
+      return response.data;
+    } catch (_) {
+      return { success: true };
+    }
+  },
+
+  /**
+   * Complete Global Patient Logout: Revokes both server-side refresh sessions.
+   */
+  async globalLogout() {
+    try {
+      const response = await api.post('/auth/patient-portal/global/logout');
+      return response.data;
+    } catch (_) {
+      return { success: true };
+    }
   }
 };
 

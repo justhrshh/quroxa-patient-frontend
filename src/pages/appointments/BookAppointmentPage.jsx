@@ -5,17 +5,14 @@ import {
   Clock, 
   User, 
   ArrowLeft, 
-  ArrowRight, 
   CheckCircle2, 
   AlertCircle, 
-  Loader2, 
-  HeartPulse, 
-  DollarSign,
+  RotateCw, 
   Stethoscope
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePortalBranding } from '../../context/PortalBrandingContext';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import appointmentService from '../../services/appointmentService';
 
@@ -49,7 +46,6 @@ export const BookAppointmentPage = () => {
       setLoadingDoctors(true);
       try {
         const allDoctors = await appointmentService.getUniversalDoctors();
-        // Filter doctors matching this hospital's tenant or general active doctors
         const hospitalDocs = Array.isArray(allDoctors)
           ? allDoctors.filter(d => !d.tenantId || d.tenantId === activeTenant || d.tenantId.toLowerCase() === activeTenant.toLowerCase())
           : [];
@@ -81,11 +77,9 @@ export const BookAppointmentPage = () => {
         } else if (avail && Array.isArray(avail.slots)) {
           setAvailableSlots(avail.slots);
         } else {
-          // Standard clinical fallbacks
           setAvailableSlots(['10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM']);
         }
       } catch (err) {
-        // Fallback default slots
         setAvailableSlots(['10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM']);
       } finally {
         setLoadingSlots(false);
@@ -136,119 +130,117 @@ export const BookAppointmentPage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fadeIn">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link to={`/${hospitalSlug}/appointments`}>
-          <button className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+    <div className="max-w-xl mx-auto space-y-5 sm:space-y-6">
+      {/* Back Link & Header */}
+      <div>
+        <Link
+          to={`/${hospitalSlug}/appointments`}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition mb-3"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Consultations</span>
         </Link>
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Schedule Consultation
-          </h1>
-          <p className="text-xs text-slate-500">
-            Book an in-person OPD consultation at {hospital?.name || hospitalSlug}
-          </p>
-        </div>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          Book Doctor Consultation
+        </h1>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Schedule an outpatient consultation slot at {hospital?.name || hospitalSlug}.
+        </p>
       </div>
 
-      <Card className="shadow-float border-slate-200">
-        <CardContent className="p-6 sm:p-8">
-          {errorMessage && (
-            <div className="mb-5 flex items-start gap-2 bg-red-50 text-red-700 text-xs p-3 rounded-xl border border-red-200">
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
+      {errorMessage && (
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs sm:text-sm animate-fadeIn">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+          <span className="flex-1 leading-snug font-medium">{errorMessage}</span>
+        </div>
+      )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* 1. Doctor Selection */}
-            <div>
-              <label htmlFor="doctor" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                Select Consulting Doctor <span className="text-red-500">*</span>
-              </label>
-              {loadingDoctors ? (
-                <div className="h-11 rounded-xl bg-slate-100 animate-pulse flex items-center px-4 text-xs text-slate-400">
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  <span>Loading hospital doctors...</span>
-                </div>
-              ) : (
-                <select
-                  id="doctor"
-                  required
-                  value={selectedDoctorId}
-                  onChange={(e) => {
-                    setSelectedDoctorId(e.target.value);
-                    setSelectedSlot('');
-                    if (errorMessage) setErrorMessage('');
-                  }}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
-                >
-                  <option value="">-- Choose Doctor / Specialist --</option>
-                  {doctors.map((doc) => (
-                    <option key={doc._id || doc.id} value={doc._id || doc.id}>
-                      Dr. {(doc.name || 'Doctor').replace(/^Dr\.\s*/i, '')} — {doc.specialty || 'General Medicine'} {doc.consultationFee ? `(₹${doc.consultationFee})` : ''}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Step 1: Doctor Selection */}
+        <Card>
+          <CardHeader title="1. Select Specialist" subtitle="Choose doctor and department" />
+          <CardContent className="space-y-3">
+            {loadingDoctors ? (
+              <div className="py-4 text-center text-xs text-slate-400">Loading hospital specialists...</div>
+            ) : doctors.length === 0 ? (
+              <div className="py-4 text-center text-xs text-slate-500">No doctors currently available for booking.</div>
+            ) : (
+              <div className="grid grid-cols-1 gap-2.5 max-h-60 overflow-y-auto pr-1">
+                {doctors.map((doc) => {
+                  const docId = doc._id || doc.id;
+                  const isSelected = selectedDoctorId === docId;
+                  const docName = doc.name ? `Dr. ${doc.name.replace(/^Dr\.\s*/i, '')}` : 'Doctor';
 
-            {/* Doctor Info Card Preview */}
-            {selectedDoctor && (
-              <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
-                    <Stethoscope className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900">Dr. {selectedDoctor.name?.replace(/^Dr\.\s*/i, '')}</h4>
-                    <p className="text-slate-500 text-[11px]">{selectedDoctor.specialty || 'OPD Consultant'}</p>
-                  </div>
-                </div>
-                {selectedDoctor.consultationFee && (
-                  <span className="font-bold text-blue-700 bg-white px-2.5 py-1 rounded-lg border border-blue-100 shadow-2xs">
-                    Fee: ₹{selectedDoctor.consultationFee}
-                  </span>
-                )}
+                  return (
+                    <button
+                      key={docId}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDoctorId(docId);
+                        setSelectedSlot('');
+                      }}
+                      className={`flex items-center justify-between p-3 rounded-xl border text-left transition ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-50/70 shadow-xs'
+                          : 'border-slate-200/80 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border ${
+                          isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 text-slate-700 border-slate-200'
+                        }`}>
+                          <Stethoscope className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{docName}</h4>
+                          <p className="text-[11px] text-slate-500 truncate">{doc.specialty || doc.department || 'Consultant'}</p>
+                        </div>
+                      </div>
+
+                      {doc.consultationFee > 0 && (
+                        <span className="text-xs font-bold font-mono text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                          ₹{doc.consultationFee}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
+          </CardContent>
+        </Card>
 
-            {/* 2. Date Picker */}
+        {/* Step 2: Date & Slot Selection */}
+        <Card>
+          <CardHeader title="2. Date & Time Slot" subtitle="Select preferred consultation time" />
+          <CardContent className="space-y-4">
             <div>
-              <label htmlFor="apptDate" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                Consultation Date <span className="text-red-500">*</span>
+              <label htmlFor="appointmentDate" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Consultation Date
               </label>
               <input
-                id="apptDate"
+                id="appointmentDate"
                 type="date"
                 min={todayStr}
-                required
                 value={appointmentDate}
                 onChange={(e) => {
                   setAppointmentDate(e.target.value);
                   setSelectedSlot('');
                 }}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
+                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-blue-600 focus:outline-none"
               />
             </div>
 
-            {/* 3. Slot Picker */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                Available Time Slot <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-slate-700 mb-2">
+                Available Time Slots
               </label>
               {loadingSlots ? (
-                <div className="h-10 rounded-xl bg-slate-100 animate-pulse flex items-center px-4 text-xs text-slate-400">
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  <span>Checking doctor availability...</span>
-                </div>
+                <div className="py-3 text-center text-xs text-slate-400">Loading available slots...</div>
               ) : availableSlots.length === 0 ? (
-                <p className="text-xs text-slate-400 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  Please select a doctor to view consultation slots.
-                </p>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center text-xs text-slate-500">
+                  No consultation slots available for this date.
+                </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {availableSlots.map((slot) => {
@@ -258,10 +250,10 @@ export const BookAppointmentPage = () => {
                         key={slot}
                         type="button"
                         onClick={() => setSelectedSlot(slot)}
-                        className={`py-2 px-3 rounded-xl text-xs font-bold font-mono transition border ${
+                        className={`py-2 px-2.5 rounded-xl text-xs font-bold font-mono border transition text-center min-h-[40px] ${
                           isSelected
                             ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40'
+                            : 'bg-white text-slate-700 border-slate-200/90 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
                         {slot}
@@ -271,46 +263,34 @@ export const BookAppointmentPage = () => {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
 
-            {/* 4. Reason for Visit */}
-            <div>
-              <label htmlFor="reason" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                Symptoms / Consultation Reason
-              </label>
-              <textarea
-                id="reason"
-                rows={3}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Briefly describe your symptoms or reason for visit (e.g. fever for 2 days, general checkup)..."
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
-              />
-            </div>
+        {/* Step 3: Chief Complaint / Reason */}
+        <Card>
+          <CardHeader title="3. Clinical Notes (Optional)" subtitle="Briefly state symptoms or purpose of visit" />
+          <CardContent>
+            <textarea
+              rows={3}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Follow-up consultation, routine check-up, headache..."
+              className="w-full p-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-600 focus:outline-none transition"
+            />
+          </CardContent>
+        </Card>
 
-            {/* Submit Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-              <Link to={`/${hospitalSlug}/appointments`}>
-                <Button variant="ghost" size="md" disabled={isSubmitting}>
-                  Cancel
-                </Button>
-              </Link>
-              <Button type="submit" variant="primary" size="md" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    <span>Confirming Booking...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Confirm Appointment</span>
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          loading={isSubmitting}
+          disabled={!selectedDoctorId || !appointmentDate || !selectedSlot}
+          className="w-full shadow-xs"
+        >
+          Confirm & Book Consultation
+        </Button>
+      </form>
     </div>
   );
 };

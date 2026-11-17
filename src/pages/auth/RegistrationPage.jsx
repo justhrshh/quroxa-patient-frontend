@@ -121,7 +121,7 @@ export const RegistrationPage = () => {
               <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-7 h-7" />
               </div>
-              <h2 className="text-xl font-extrabold text-slate-900 mb-2">
+              <h2 className="text-xl font-black text-slate-900 mb-2">
                 Verification Required
               </h2>
               <p className="text-xs text-slate-500 mb-6 leading-relaxed">
@@ -147,14 +147,14 @@ export const RegistrationPage = () => {
         <div className="text-center mb-6">
           <div className="inline-block mb-3">
             {hospital ? (
-              <HospitalBrandLogo hospital={hospital} size={50} borderRadius={14} />
+              <HospitalBrandLogo hospital={hospital} size={52} borderRadius={14} />
             ) : (
-              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-md">
+              <div className="w-13 h-13 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-md">
                 <UserPlus className="w-6 h-6" />
               </div>
             )}
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             Patient Self-Registration
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -165,7 +165,7 @@ export const RegistrationPage = () => {
         <Card className="shadow-float border-slate-200">
           <CardContent className="p-6 sm:p-8">
             {errorMessage && (
-              <div className="mb-5 flex items-start gap-2 bg-red-50 text-red-700 text-xs p-3 rounded-xl border border-red-200">
+              <div className="mb-5 flex items-start gap-2 bg-red-50 text-red-700 text-xs p-3.5 rounded-xl border border-red-200">
                 <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                 <span>{errorMessage}</span>
               </div>
@@ -177,7 +177,7 @@ export const RegistrationPage = () => {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
                   Verified Contact Number
                 </label>
-                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-mono font-bold">
+                <div className="flex items-center justify-between min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-mono font-bold">
                   <span>+91 {contactPrefill}</span>
                   <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-sans font-semibold">
                     <CheckCircle2 className="w-3.5 h-3.5" />
@@ -200,12 +200,12 @@ export const RegistrationPage = () => {
                   onChange={handleChange}
                   placeholder="e.g. Ramesh Kumar"
                   disabled={isSubmitting}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
                 />
               </div>
 
               {/* Age & Gender Grid */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="age" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
                     Age (Years) <span className="text-red-500">*</span>
@@ -221,7 +221,7 @@ export const RegistrationPage = () => {
                     onChange={handleChange}
                     placeholder="e.g. 35"
                     disabled={isSubmitting}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
                   />
                 </div>
 
@@ -235,7 +235,7 @@ export const RegistrationPage = () => {
                     value={formData.gender}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -245,7 +245,7 @@ export const RegistrationPage = () => {
               </div>
 
               {/* Email & Blood Group Grid */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
                     Email Address
@@ -258,7 +258,7 @@ export const RegistrationPage = () => {
                     onChange={handleChange}
                     placeholder="patient@example.com"
                     disabled={isSubmitting}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
                   />
                 </div>
 
@@ -272,7 +272,7 @@ export const RegistrationPage = () => {
                     value={formData.bloodGroup}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
                   >
                     <option value="">Select (Optional)</option>
                     <option value="A+">A+</option>
@@ -300,13 +300,13 @@ export const RegistrationPage = () => {
                   onChange={handleChange}
                   placeholder="Street, City, Postal Code"
                   disabled={isSubmitting}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus-ring focus:bg-white focus:border-blue-500 transition"
                 />
               </div>
 
               {/* DPDP Consent */}
               <div className="pt-2">
-                <label className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/50 border border-blue-100/80 cursor-pointer">
+                <label className="flex items-start gap-3 p-3.5 rounded-xl bg-blue-50/50 border border-blue-100 cursor-pointer">
                   <input
                     type="checkbox"
                     name="dpdpConsent"

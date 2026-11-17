@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Navigate, useParams, useLocation } from 'react-router-dom';
 import { usePortalBranding } from './PortalBrandingContext';
 import socketService from '../services/socketService';
+import authService from '../services/authService';
+import { setInMemoryTokens } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -116,6 +118,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const setGlobalSession = useCallback((newToken, newPatient) => {
+    setInMemoryTokens({ globalToken: newToken || null });
     try {
       if (newToken) {
         localStorage.setItem('quroxa_global_token', newToken);
@@ -132,6 +135,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = useCallback((newToken, newUser) => {
+    setInMemoryTokens({ hospitalToken: newToken || null });
     try {
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(newUser));
@@ -143,6 +147,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
+    setInMemoryTokens({ hospitalToken: null });
     try {
       socketService.disconnectSocket();
       localStorage.removeItem('token');
@@ -154,10 +159,15 @@ export const AuthProvider = ({ children }) => {
     setTempRegistrationState(null);
   }, []);
 
-  // Hospital Switching Action: leaves clinic, clears hospital token & sockets, returns to /portal
-  const switchHospital = useCallback(() => {
+  // Hospital Switching Action: leaves clinic, revokes hospital refresh cookie,
+  // clears hospital token & sockets, and returns to /portal while preserving Global session
+  const switchHospital = useCallback(async () => {
+    setInMemoryTokens({ hospitalToken: null });
     try {
       socketService.disconnectSocket();
+      try {
+        await authService.leaveHospitalSession();
+      } catch (_) {}
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       sessionStorage.removeItem('quroxa_temp_reg');
@@ -167,10 +177,14 @@ export const AuthProvider = ({ children }) => {
     setTempRegistrationState(null);
   }, []);
 
-  // Global Portal Logout: purges both hospital and global sessions
-  const globalLogout = useCallback(() => {
+  // Global Portal Logout: revokes both server-side refresh sessions and clears all storage
+  const globalLogout = useCallback(async () => {
+    setInMemoryTokens({ globalToken: null, hospitalToken: null });
     try {
       socketService.disconnectSocket();
+      try {
+        await authService.globalLogout();
+      } catch (_) {}
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('quroxa_global_token');
@@ -183,6 +197,35 @@ export const AuthProvider = ({ children }) => {
     setGlobalPatient(null);
     setTempRegistrationState(null);
   }, []);
+
+  // Silent Global Token Refresh
+  const refreshGlobalToken = useCallback(async () => {
+    try {
+      const res = await authService.refreshGlobalToken();
+      if (res?.globalToken) {
+        setGlobalSession(res.globalToken, res.patient || globalPatient);
+        return res.globalToken;
+      }
+      return null;
+    } catch (err) {
+      return null;
+    }
+  }, [globalPatient, setGlobalSession]);
+
+  // Silent Hospital Token Refresh
+  const refreshHospitalToken = useCallback(async () => {
+    try {
+      const res = await authService.refreshHospitalToken();
+      if (res?.token && res?.user) {
+        login(res.token, res.user);
+        socketService.updateToken(res.token);
+        return res.token;
+      }
+      return null;
+    } catch (err) {
+      return null;
+    }
+  }, [login]);
 
   const setTempRegistration = useCallback((data) => {
     try {
@@ -200,14 +243,19 @@ export const AuthProvider = ({ children }) => {
     const handleAuthExpired = () => {
       logout();
     };
+    const handleGlobalExpired = () => {
+      globalLogout();
+    };
 
     window.addEventListener('quroxa_patient_auth_expired', handleAuthExpired);
     window.addEventListener('quroxa_patient_session_expired', handleAuthExpired);
+    window.addEventListener('quroxa_patient_global_expired', handleGlobalExpired);
     return () => {
       window.removeEventListener('quroxa_patient_auth_expired', handleAuthExpired);
       window.removeEventListener('quroxa_patient_session_expired', handleAuthExpired);
+      window.removeEventListener('quroxa_patient_global_expired', handleGlobalExpired);
     };
-  }, [logout]);
+  }, [logout, globalLogout]);
 
   const isAuthenticated = Boolean(
     token &&
@@ -250,7 +298,9 @@ export const AuthProvider = ({ children }) => {
     logout,
     switchHospital,
     globalLogout,
-    setGlobalSession
+    setGlobalSession,
+    refreshGlobalToken,
+    refreshHospitalToken
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -258,16 +308,47 @@ export const AuthProvider = ({ children }) => {
 
 /**
  * Global Portal Guard: Ensures the user has an active global patient session.
- * Protects /portal and profile selection routes.
+ * Performs silent background refresh using HttpOnly cookie before redirecting to login.
  */
 export const GlobalProtectedRoute = ({ children }) => {
-  const { isGlobalAuthenticated, globalToken, globalLogout } = useAuth();
+  const { isGlobalAuthenticated, refreshGlobalToken } = useAuth();
   const location = useLocation();
+  const [verifying, setVerifying] = useState(false);
+  const [passed, setPassed] = useState(isGlobalAuthenticated);
 
-  if (!isGlobalAuthenticated) {
-    if (globalToken && isTokenExpired(globalToken)) {
-      globalLogout();
+  useEffect(() => {
+    let isMounted = true;
+    async function checkSession() {
+      if (isGlobalAuthenticated) {
+        if (isMounted) setPassed(true);
+        return;
+      }
+
+      setVerifying(true);
+      try {
+        const newToken = await refreshGlobalToken();
+        if (isMounted) {
+          setPassed(Boolean(newToken));
+        }
+      } catch (_) {
+        if (isMounted) setPassed(false);
+      } finally {
+        if (isMounted) setVerifying(false);
+      }
     }
+    checkSession();
+    return () => { isMounted = false; };
+  }, [isGlobalAuthenticated, refreshGlobalToken]);
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-[#f0f6fc] flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!passed && !isGlobalAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -275,19 +356,51 @@ export const GlobalProtectedRoute = ({ children }) => {
 };
 
 /**
- * Route Guard: Ensures the user has an active authenticated patient session.
- * If unauthenticated, safely redirects to the central login route or hospital login.
- * Also enforces strict hospital-context alignment: if a patient logged into Hospital A
- * manually switches the URL slug to Hospital B, the session mismatch is trapped,
- * preventing cross-hospital data confusion or leakage.
+ * Route Guard: Ensures the user has an active authenticated hospital patient session.
+ * Performs silent background refresh using HttpOnly cookie before redirecting to login.
+ * Also enforces strict hospital-context alignment.
  */
 export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, user, token, logout } = useAuth();
+  const { isAuthenticated, user, token, logout, refreshHospitalToken } = useAuth();
   const { hospitalSlug } = useParams();
   const { hospital } = usePortalBranding();
   const location = useLocation();
+  const [verifying, setVerifying] = useState(false);
+  const [passed, setPassed] = useState(isAuthenticated);
 
-  if (!isAuthenticated) {
+  useEffect(() => {
+    let isMounted = true;
+    async function checkHospitalSession() {
+      if (isAuthenticated) {
+        if (isMounted) setPassed(true);
+        return;
+      }
+
+      setVerifying(true);
+      try {
+        const newToken = await refreshHospitalToken();
+        if (isMounted) {
+          setPassed(Boolean(newToken));
+        }
+      } catch (_) {
+        if (isMounted) setPassed(false);
+      } finally {
+        if (isMounted) setVerifying(false);
+      }
+    }
+    checkHospitalSession();
+    return () => { isMounted = false; };
+  }, [isAuthenticated, refreshHospitalToken]);
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-[#f0f6fc] flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!passed && !isAuthenticated) {
     const loginPath = hospitalSlug ? `/${hospitalSlug}/login` : '/login';
     return <Navigate to={loginPath} state={{ from: location }} replace />;
   }

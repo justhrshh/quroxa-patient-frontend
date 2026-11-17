@@ -12,7 +12,8 @@ import {
   Clock, 
   Building2, 
   Download,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePortalBranding, HospitalBrandLogo } from '../../context/PortalBrandingContext';
@@ -62,13 +63,18 @@ export const PrescriptionsPage = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Digital Prescriptions
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Digital Prescriptions
+            </h1>
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              {prescriptions.length} {prescriptions.length === 1 ? 'Record' : 'Records'}
+            </span>
+          </div>
           <p className="text-xs text-slate-500 mt-1">
             Access verified doctor prescriptions, dosage instructions, and print-ready clinical documents.
           </p>
@@ -83,9 +89,9 @@ export const PrescriptionsPage = () => {
       )}
 
       {/* Main Grid: List on Left, Document Viewer on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Prescription List */}
-        <div className={`${selectedRx ? 'lg:col-span-5' : 'lg:col-span-12'} space-y-3`}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Prescription List (hidden on mobile when a document is actively viewed for clean UX) */}
+        <div className={`${selectedRx ? 'hidden lg:block lg:col-span-5' : 'col-span-12'} space-y-3`}>
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -120,67 +126,81 @@ export const PrescriptionsPage = () => {
               const itemsCount = Array.isArray(rx.items) ? rx.items.length : 0;
 
               return (
-                <Card
+                <div
                   key={rx._id}
                   onClick={() => setSelectedRx(rx)}
-                  className={`cursor-pointer transition border ${
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedRx(rx); }}
+                  className={`w-full text-left p-4 sm:p-5 rounded-2xl cursor-pointer transition border ${
                     isSelected
-                      ? 'border-blue-600 bg-blue-50/30 shadow-xs'
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500/20'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 shadow-2xs'
                   }`}
                 >
-                  <CardContent className="p-4 sm:p-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-sm shrink-0 border border-purple-100">
-                          <Pill className="w-5 h-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-sm shrink-0 border border-purple-100/80">
+                        <Pill className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-slate-900 text-sm">
+                            {doctorName}
+                          </h3>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                            {rx.status || 'Active'}
+                          </span>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-slate-900 text-sm">
-                              {doctorName}
-                            </h3>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                              {rx.status || 'Active'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 font-medium">
-                            {rx.doctorId?.specialty || 'General Medicine'}
-                          </p>
-                          <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                              <span>{dateStr}</span>
-                            </span>
-                            <span>•</span>
-                            <span className="font-semibold text-purple-700">
-                              {itemsCount} {itemsCount === 1 ? 'medicine' : 'medicines'}
-                            </span>
-                          </div>
+                        <p className="text-xs text-slate-500 font-medium">
+                          {rx.doctorId?.specialty || 'General Medicine'}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-xs text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{dateStr}</span>
+                          </span>
+                          <span>&bull;</span>
+                          <span className="font-semibold text-purple-700">
+                            {itemsCount} {itemsCount === 1 ? 'medicine' : 'medicines'}
+                          </span>
                         </div>
                       </div>
-
-                      <ChevronRight className={`w-5 h-5 transition ${
-                        isSelected ? 'text-blue-600 translate-x-1' : 'text-slate-300'
-                      }`} />
                     </div>
-                  </CardContent>
-                </Card>
+
+                    <ChevronRight className={`w-5 h-5 transition shrink-0 ${
+                      isSelected ? 'text-blue-600 translate-x-1' : 'text-slate-300'
+                    }`} />
+                  </div>
+                </div>
               );
             })
           )}
         </div>
 
         {/* Right Column: Detailed Printable Document */}
-        {selectedRx && (
-          <div className="lg:col-span-7">
+        {selectedRx ? (
+          <div className="col-span-12 lg:col-span-7">
+            {/* Mobile Back Button to list */}
+            <div className="mb-3 lg:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedRx(null)}
+                className="w-full justify-center text-xs font-bold text-slate-700 border-slate-200"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                <span>Back to All Prescriptions</span>
+              </Button>
+            </div>
+
             <Card className="shadow-float border-slate-200 sticky top-20">
-              <CardContent className="p-6 sm:p-8">
+              <CardContent className="p-5 sm:p-8">
                 {/* Document Actions Bar */}
                 <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-6 print:hidden">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      Prescription Document
+                      Prescription
                     </span>
                     <span className="text-xs font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md">
                       #{selectedRx._id.slice(-6).toUpperCase()}
@@ -195,6 +215,7 @@ export const PrescriptionsPage = () => {
                     <button
                       onClick={() => setSelectedRx(null)}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition lg:hidden"
+                      aria-label="Close document"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -213,7 +234,7 @@ export const PrescriptionsPage = () => {
                       />
                     </div>
                   ) : (
-                    <div className="flex items-start justify-between border-b-2 border-slate-900 pb-5">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b-2 border-slate-900 pb-5 gap-3">
                       <div className="flex items-center gap-3">
                         {hospital && (
                           <HospitalBrandLogo hospital={hospital} size={48} borderRadius={12} />
@@ -232,7 +253,7 @@ export const PrescriptionsPage = () => {
                       </div>
 
                       {hospital?.gst && (
-                        <div className="text-right text-[11px] font-mono text-slate-500">
+                        <div className="sm:text-right text-[11px] font-mono text-slate-500">
                           <span>GSTIN: {hospital.gst}</span>
                         </div>
                       )}
@@ -240,7 +261,7 @@ export const PrescriptionsPage = () => {
                   )}
 
                   {/* Patient & Doctor Banner */}
-                  <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
                         Patient Details
@@ -257,7 +278,7 @@ export const PrescriptionsPage = () => {
                       </p>
                     </div>
 
-                    <div className="text-right">
+                    <div className="sm:text-right">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
                         Prescribing Consultant
                       </span>
@@ -281,15 +302,15 @@ export const PrescriptionsPage = () => {
                   {(selectedRx.diagnosis || selectedRx.notes) && (
                     <div className="space-y-2 text-xs">
                       {selectedRx.diagnosis && (
-                        <div>
-                          <strong className="text-slate-800 uppercase tracking-wider text-[10px]">Diagnosis:</strong>
-                          <p className="text-slate-700 mt-0.5 font-medium">{selectedRx.diagnosis}</p>
+                        <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                          <strong className="text-blue-900 uppercase tracking-wider text-[10px] block">Diagnosis</strong>
+                          <p className="text-slate-800 mt-0.5 font-medium">{selectedRx.diagnosis}</p>
                         </div>
                       )}
                       {selectedRx.notes && (
-                        <div>
-                          <strong className="text-slate-800 uppercase tracking-wider text-[10px]">Clinical Notes:</strong>
-                          <p className="text-slate-700 mt-0.5">{selectedRx.notes}</p>
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <strong className="text-slate-700 uppercase tracking-wider text-[10px] block">Clinical Notes</strong>
+                          <p className="text-slate-600 mt-0.5">{selectedRx.notes}</p>
                         </div>
                       )}
                     </div>
@@ -304,8 +325,8 @@ export const PrescriptionsPage = () => {
                       </h4>
                     </div>
 
-                    <div className="border border-slate-200 rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-xs">
+                    <div className="border border-slate-200 rounded-xl overflow-x-auto">
+                      <table className="w-full text-left text-xs min-w-[480px]">
                         <thead className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                           <tr>
                             <th className="py-2.5 px-3">#</th>
@@ -363,17 +384,17 @@ export const PrescriptionsPage = () => {
                   )}
 
                   {/* Doctor Signature Block */}
-                  <div className="pt-6 border-t border-slate-200 flex items-end justify-between text-xs">
+                  <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row sm:items-end justify-between text-xs gap-4">
                     <p className="text-[10px] text-slate-400">
-                      Digitally generated through Quroxa Patient Portal &bull; Validated Electronic Prescription
+                      Digitally generated through QUROXA Patient Portal &bull; Validated Electronic Prescription
                     </p>
 
-                    <div className="text-right">
+                    <div className="sm:text-right">
                       {selectedRx.doctorSignatureUrl && (
                         <img
                           src={selectedRx.doctorSignatureUrl}
                           alt="Doctor Signature"
-                          className="h-10 max-w-[120px] object-contain ml-auto mb-1"
+                          className="h-10 max-w-[120px] object-contain sm:ml-auto mb-1"
                         />
                       )}
                       <div className="w-36 border-t border-slate-300 mt-2 pt-1 font-bold text-slate-800">
@@ -386,7 +407,7 @@ export const PrescriptionsPage = () => {
               </CardContent>
             </Card>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

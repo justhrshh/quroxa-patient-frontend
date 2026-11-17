@@ -1,83 +1,90 @@
 import React from 'react';
-import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { 
+  Building2, 
+  User, 
+  LogOut, 
+  ShieldCheck, 
+  ChevronRight,
+  Menu,
+  HeartPulse
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePortalBranding, HospitalBrandLogo } from '../../context/PortalBrandingContext';
-import { ShieldCheck, User, LogOut, HeartPulse, Building2 } from 'lucide-react';
 
 export const PatientHeader = () => {
+  const { hospitalSlug } = useParams();
   const { user, isAuthenticated, logout, switchHospital, globalLogout } = useAuth();
   const { hospital } = usePortalBranding();
-  const { hospitalSlug } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    await globalLogout();
+    navigate('/');
   };
 
-  const handleSwitchHospital = () => {
-    switchHospital();
+  const handleSwitchHospital = async () => {
+    await switchHospital();
     navigate('/portal');
   };
 
   const portalBasePath = hospitalSlug ? `/${hospitalSlug}` : '';
 
-  const navLinks = [
-    { label: 'Overview', path: `${portalBasePath}/dashboard` },
-    { label: 'Appointments', path: `${portalBasePath}/appointments` },
-    { label: 'Prescriptions', path: `${portalBasePath}/prescriptions` },
-    { label: 'Lab Reports', path: `${portalBasePath}/lab-results` },
-    { label: 'Medical Records', path: `${portalBasePath}/medical-records` },
-    { label: 'Billing', path: `${portalBasePath}/billing` }
-  ];
+  const navLinks = hospitalSlug ? [
+    { label: 'Overview', path: `/${hospitalSlug}/dashboard` },
+    { label: 'Appointments', path: `/${hospitalSlug}/appointments` },
+    { label: 'Prescriptions', path: `/${hospitalSlug}/prescriptions` },
+    { label: 'Lab Reports', path: `/${hospitalSlug}/lab-results` },
+    { label: 'Medical Records', path: `/${hospitalSlug}/records` },
+    { label: 'Billing', path: `/${hospitalSlug}/billing` },
+  ] : [];
 
   return (
-    <header className="sticky top-0 z-30 w-full glass-surface border-b border-slate-200/80 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Left: Hospital branding or Quroxa default */}
-        <div className="flex items-center gap-3">
-          <Link to={`${portalBasePath}/dashboard`} className="flex items-center gap-3 group">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-colors duration-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        {/* Left: Brand Identity */}
+        <div className="flex items-center gap-3 min-w-0">
+          <Link to={`${portalBasePath}/dashboard`} className="flex items-center gap-2.5 group min-w-0 min-h-[44px]">
             {hospital ? (
               <HospitalBrandLogo hospital={hospital} size={38} borderRadius={10} />
             ) : (
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-900 via-blue-600 to-cyan-500 text-white flex items-center justify-center shadow-xs">
-                <HeartPulse className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-slate-900 text-blue-400 border border-slate-800 flex items-center justify-center shadow-xs shrink-0">
+                <HeartPulse className="w-5 h-5 text-blue-400" />
               </div>
             )}
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-slate-900 text-sm sm:text-base tracking-tight group-hover:text-blue-600 transition">
-                  {hospital?.name || 'Quroxa Patient Portal'}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="font-extrabold text-slate-900 text-xs sm:text-sm md:text-base tracking-tight truncate group-hover:text-blue-600 transition">
+                  {hospital?.name || 'QUROXA'}
                 </span>
-                <Link
-                  to={`${portalBasePath}/privacy`}
+                <span
                   title="DPDP Privacy & Consent Verified"
-                  onClick={(e) => e.stopPropagation()}
+                  className="shrink-0 inline-flex items-center justify-center p-1"
                 >
-                  <ShieldCheck className="w-4 h-4 text-emerald-500 hover:text-emerald-600 transition" />
-                </Link>
+                  <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
+                </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium -mt-0.5 hidden sm:block">
+              <p className="text-[10px] text-slate-400 font-medium -mt-0.5 hidden sm:block truncate">
                 Verified Clinical Portal
               </p>
             </div>
           </Link>
         </div>
 
-        {/* Center: Desktop Navigation (active when logged in) */}
-        {isAuthenticated && (
-          <nav className="hidden lg:flex items-center gap-1 bg-slate-100/70 p-1 rounded-xl border border-slate-200/50">
+        {/* Center: Desktop Navigation (active when in a hospital session) */}
+        {isAuthenticated && hospitalSlug && (
+          <nav className="hidden lg:flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200/70">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               return (
                 <Link
                   key={link.label}
                   to={link.path}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  className={`px-3 py-2 rounded-lg text-xs font-semibold transition min-h-[38px] flex items-center ${
                     isActive
-                      ? 'text-blue-600 bg-white shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-blue-600 hover:bg-white/60'
+                      ? 'text-blue-600 bg-white shadow-subtle font-bold border border-slate-200/60'
+                      : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100/70'
                   }`}
                 >
                   {link.label}
@@ -87,38 +94,40 @@ export const PatientHeader = () => {
           </nav>
         )}
 
-        {/* Right: User identity & actions */}
-        <div className="flex items-center gap-2">
+        {/* Right: Hospital Switcher & User identity */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {isAuthenticated ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {/* All Hospitals switcher button */}
-              <button
-                type="button"
-                onClick={handleSwitchHospital}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200/60 transition text-xs font-bold"
-                title="Return to Central Portal to Switch Hospital"
-              >
-                <Building2 className="w-3.5 h-3.5 text-blue-600" />
-                <span className="hidden sm:inline">All Hospitals</span>
-              </button>
+              {hospitalSlug && (
+                <button
+                  type="button"
+                  onClick={handleSwitchHospital}
+                  className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200/80 transition text-xs font-bold touch-manipulation focus-ring"
+                  title="Return to Central Portal to Switch Hospital"
+                >
+                  <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span className="hidden sm:inline">All Hospitals</span>
+                </button>
+              )}
 
               <Link
                 to={`${portalBasePath}/profile`}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/80 border border-slate-200/50 hover:bg-slate-200/60 transition group"
+                className="flex items-center gap-2 px-3 py-2 min-h-[44px] rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition group touch-manipulation"
                 title="View Profile & Settings"
               >
-                <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs group-hover:bg-blue-600 group-hover:text-white transition">
+                <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs group-hover:bg-blue-600 group-hover:text-white transition">
                   {user?.name ? user.name.charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
                 </div>
-                <span className="text-xs font-semibold text-slate-700 max-w-[110px] truncate hidden sm:block group-hover:text-slate-900">
+                <span className="text-xs font-semibold text-slate-700 max-w-[90px] sm:max-w-[120px] truncate hidden md:block group-hover:text-slate-900">
                   {user?.name || 'Patient'}
                 </span>
               </Link>
 
               <button
                 onClick={handleLogout}
-                title="Log Out"
-                className="p-2 rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 transition"
+                title="Sign Out"
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition touch-manipulation focus-ring"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -126,7 +135,7 @@ export const PatientHeader = () => {
           ) : (
             <Link
               to={hospitalSlug ? `/${hospitalSlug}/login` : '/'}
-              className="text-xs font-semibold px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-xs"
+              className="text-xs font-bold px-4 py-2.5 min-h-[44px] flex items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-xs focus-ring"
             >
               Sign In
             </Link>

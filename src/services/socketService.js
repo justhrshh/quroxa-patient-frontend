@@ -137,6 +137,25 @@ export const initSocket = (token, { onDataChanged, onSessionExpired } = {}) => {
 };
 
 /**
+ * Updates the active socket's authorization credentials after a token refresh,
+ * reconnecting seamlessly if needed.
+ */
+export const updateToken = (newToken) => {
+  if (!newToken || typeof newToken !== 'string') return;
+  const clean = newToken.trim();
+  if (socketInstance) {
+    socketInstance.auth = { token: clean };
+    if (socketInstance.connected) {
+      // Reconnection forces fresh server-side handshake & socketAuthMiddleware execution,
+      // resetting server-side exp timer and maintaining room isolation
+      socketInstance.disconnect().connect();
+    } else {
+      socketInstance.connect();
+    }
+  }
+};
+
+/**
  * Subscribes a listener to a socket event.
  * Returns an unsubscribe function for React cleanup.
  *
@@ -198,6 +217,7 @@ export default {
   initSocket,
   subscribeToSocket,
   disconnectSocket,
+  updateToken,
   getSocket,
   getSocketUrl
 };

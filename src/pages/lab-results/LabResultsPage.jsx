@@ -12,7 +12,8 @@ import {
   ChevronRight, 
   Printer, 
   X,
-  FileCheck2
+  FileCheck2,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePortalBranding } from '../../context/PortalBrandingContext';
@@ -57,15 +58,22 @@ export const LabResultsPage = () => {
   }, [searchParams]);
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn pb-12">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-          Diagnostic Pathology & Lab Reports
-        </h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Access verified blood investigations, pathology findings, and diagnostic reports at {hospital?.name || hospitalSlug}.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Diagnostic Pathology & Lab Reports
+            </h1>
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              {labRequests.length} {labRequests.length === 1 ? 'Report' : 'Reports'}
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Access verified blood investigations, pathology findings, and diagnostic reports at {hospital?.name || hospitalSlug}.
+          </p>
+        </div>
       </div>
 
       {error && (
@@ -76,8 +84,9 @@ export const LabResultsPage = () => {
       )}
 
       {/* Grid: List on Left, Report Detail View on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className={`${selectedLab ? 'lg:col-span-5' : 'lg:col-span-12'} space-y-3`}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Reports List */}
+        <div className={`${selectedLab ? 'hidden lg:block lg:col-span-5' : 'col-span-12'} space-y-3`}>
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -113,79 +122,93 @@ export const LabResultsPage = () => {
               const testTitle = lab.testName || (Array.isArray(lab.tests) && lab.tests.length > 0 ? lab.tests.map(t => t.name || t).join(', ') : 'Diagnostic Panel');
 
               return (
-                <Card
+                <div
                   key={lab._id}
                   onClick={() => setSelectedLab(lab)}
-                  className={`cursor-pointer transition border ${
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedLab(lab); }}
+                  className={`w-full text-left p-4 sm:p-5 rounded-2xl cursor-pointer transition border ${
                     isSelected
-                      ? 'border-blue-600 bg-blue-50/30 shadow-xs'
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500/20'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 shadow-2xs'
                   }`}
                 >
-                  <CardContent className="p-4 sm:p-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border ${
-                          isReady
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                            : 'bg-amber-50 text-amber-700 border-amber-100'
-                        }`}>
-                          <Activity className="w-5 h-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border ${
+                        isReady
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100/80'
+                          : 'bg-amber-50 text-amber-700 border-amber-100/80'
+                      }`}>
+                        <Activity className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-slate-900 text-sm max-w-[200px] truncate">
+                            {testTitle}
+                          </h3>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            isReady ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {lab.status || 'Processing'}
+                          </span>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-slate-900 text-sm max-w-[200px] truncate">
-                              {testTitle}
-                            </h3>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              isReady ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {lab.status || 'Processing'}
-                            </span>
-                          </div>
 
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            {lab.category || 'Pathology & Biochemistry'}
-                          </p>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                          {lab.category || 'Pathology & Biochemistry'}
+                        </p>
 
-                          <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                              <span>{dateStr}</span>
-                            </span>
-                            {lab.doctorId?.name && (
-                              <>
-                                <span>•</span>
-                                <span>Ref: Dr. {lab.doctorId.name.replace(/^Dr\.\s*/i, '')}</span>
-                              </>
-                            )}
-                          </div>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-xs text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{dateStr}</span>
+                          </span>
+                          {lab.doctorId?.name && (
+                            <>
+                              <span>&bull;</span>
+                              <span>Ref: Dr. {lab.doctorId.name.replace(/^Dr\.\s*/i, '')}</span>
+                            </>
+                          )}
                         </div>
                       </div>
-
-                      <ChevronRight className={`w-5 h-5 transition ${
-                        isSelected ? 'text-blue-600 translate-x-1' : 'text-slate-300'
-                      }`} />
                     </div>
-                  </CardContent>
-                </Card>
+
+                    <ChevronRight className={`w-5 h-5 transition shrink-0 ${
+                      isSelected ? 'text-blue-600 translate-x-1' : 'text-slate-300'
+                    }`} />
+                  </div>
+                </div>
               );
             })
           )}
         </div>
 
         {/* Right Column: Report Document Viewer */}
-        {selectedLab && (
-          <div className="lg:col-span-7">
+        {selectedLab ? (
+          <div className="col-span-12 lg:col-span-7">
+            {/* Mobile Back Button to list */}
+            <div className="mb-3 lg:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedLab(null)}
+                className="w-full justify-center text-xs font-bold text-slate-700 border-slate-200"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                <span>Back to All Lab Reports</span>
+              </Button>
+            </div>
+
             <Card className="shadow-float border-slate-200 sticky top-20">
-              <CardContent className="p-6 sm:p-8 space-y-6">
+              <CardContent className="p-5 sm:p-8 space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-slate-200">
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                       Validated Diagnostic Report
                     </span>
-                    <h3 className="text-base font-extrabold text-slate-900">
+                    <h3 className="text-base font-black text-slate-900">
                       {selectedLab.testName || 'Diagnostic Investigation'}
                     </h3>
                   </div>
@@ -198,6 +221,7 @@ export const LabResultsPage = () => {
                     <button
                       onClick={() => setSelectedLab(null)}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden"
+                      aria-label="Close report"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -205,7 +229,7 @@ export const LabResultsPage = () => {
                 </div>
 
                 {/* Metadata Pill Banner */}
-                <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                   <div>
                     <span className="text-slate-400 block text-[10px] font-bold uppercase">Ordered By</span>
                     <strong className="text-slate-800">
@@ -234,8 +258,8 @@ export const LabResultsPage = () => {
                     Observed Diagnostic Parameters
                   </h4>
 
-                  <div className="border border-slate-200 rounded-xl overflow-hidden">
-                    <table className="w-full text-left text-xs">
+                  <div className="border border-slate-200 rounded-xl overflow-x-auto">
+                    <table className="w-full text-left text-xs min-w-[440px]">
                       <thead className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                         <tr>
                           <th className="py-2.5 px-3">Test Parameter</th>
@@ -273,9 +297,9 @@ export const LabResultsPage = () => {
 
                 {/* Report Attachment / PDF link if available */}
                 {selectedLab.reportUrl && (
-                  <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100 flex items-center justify-between">
+                  <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <FileCheck2 className="w-5 h-5 text-blue-600" />
+                      <FileCheck2 className="w-5 h-5 text-blue-600 shrink-0" />
                       <div>
                         <h5 className="font-bold text-slate-900 text-xs">Official Signed Laboratory Document</h5>
                         <p className="text-[11px] text-slate-500">PDF document validated by pathologist</p>
@@ -285,7 +309,7 @@ export const LabResultsPage = () => {
                       href={selectedLab.reportUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 flex items-center gap-1.5 transition"
+                      className="px-3.5 py-2 rounded-xl bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 flex items-center gap-1.5 transition self-stretch sm:self-auto justify-center"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Download</span>
@@ -295,7 +319,7 @@ export const LabResultsPage = () => {
               </CardContent>
             </Card>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

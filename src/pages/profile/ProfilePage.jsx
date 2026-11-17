@@ -152,10 +152,10 @@ export const ProfilePage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
+    <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
           Patient Profile & Account Settings
         </h1>
         <p className="text-xs text-slate-500 mt-1">
@@ -166,7 +166,7 @@ export const ProfilePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column: Identity Snapshot Card */}
         <div className="space-y-4">
-          <Card className="border-slate-200">
+          <Card className="border-slate-200 shadow-2xs">
             <CardContent className="p-6 text-center">
               <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl mx-auto mb-3 shadow-md">
                 {formData.name ? formData.name.charAt(0).toUpperCase() : <User className="w-8 h-8" />}
@@ -178,7 +178,7 @@ export const ProfilePage = () => {
                 {formData.gender} {formData.age ? `• ${formData.age} yrs` : ''}
               </p>
 
-              <div className="mt-4 pt-4 border-t border-slate-100 text-left space-y-2 text-xs">
+              <div className="mt-4 pt-4 border-t border-slate-100 text-left space-y-2.5 text-xs">
                 <div>
                   <span className="text-slate-400 text-[10px] uppercase font-bold block">National UHID</span>
                   <span className="font-mono font-bold text-slate-800">{formData.uhId || '—'}</span>
@@ -188,7 +188,7 @@ export const ProfilePage = () => {
                   <span className="font-mono font-bold text-slate-800">{formData.patientId || '—'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Hospital Branch</span>
+                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Associated Facility</span>
                   <span className="font-semibold text-blue-600">{hospital?.name || hospitalSlug}</span>
                 </div>
               </div>
@@ -199,8 +199,8 @@ export const ProfilePage = () => {
         {/* Right Column: Edit Profile & Password Cards */}
         <div className="md:col-span-2 space-y-6">
           {/* Edit Profile Form */}
-          <Card className="border-slate-200 shadow-xs">
-            <CardContent className="p-6">
+          <Card className="border-slate-200 shadow-2xs">
+            <CardContent className="p-5 sm:p-6">
               <h3 className="font-extrabold text-slate-900 text-sm mb-4">
                 Personal Demographic Information
               </h3>
@@ -232,12 +232,12 @@ export const ProfilePage = () => {
                     required
                     value={formData.name}
                     onChange={handleProfileChange}
-                    className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                   />
                 </div>
 
                 {/* Age & Gender */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label htmlFor="age" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
                       Age (Years)
@@ -248,7 +248,7 @@ export const ProfilePage = () => {
                       type="number"
                       value={formData.age}
                       onChange={handleProfileChange}
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                     />
                   </div>
                   <div>
@@ -260,7 +260,7 @@ export const ProfilePage = () => {
                       name="gender"
                       value={formData.gender}
                       onChange={handleProfileChange}
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
@@ -270,13 +270,14 @@ export const ProfilePage = () => {
                 </div>
 
                 {/* Contact (Locked) & Email */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
                       Primary Mobile (Locked)
                     </label>
-                    <div className="px-3 py-2 text-xs rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-mono">
-                      +91 {formData.contact}
+                    <div className="min-h-[44px] px-3.5 py-2.5 flex items-center justify-between text-xs rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-mono">
+                      <span>+91 {formData.contact}</span>
+                      <Lock className="w-3.5 h-3.5 text-slate-400" />
                     </div>
                   </div>
                   <div>
@@ -289,13 +290,13 @@ export const ProfilePage = () => {
                       type="email"
                       value={formData.email}
                       onChange={handleProfileChange}
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                     />
                   </div>
                 </div>
 
                 {/* Blood Group & Address */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label htmlFor="bloodGroup" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
                       Blood Group
@@ -305,7 +306,7 @@ export const ProfilePage = () => {
                       name="bloodGroup"
                       value={formData.bloodGroup}
                       onChange={handleProfileChange}
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                     >
                       <option value="">Select</option>
                       <option value="A+">A+</option>
@@ -318,7 +319,7 @@ export const ProfilePage = () => {
                       <option value="O-">O-</option>
                     </select>
                   </div>
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <label htmlFor="address" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
                       Residential Address
                     </label>
@@ -328,13 +329,13 @@ export const ProfilePage = () => {
                       type="text"
                       value={formData.address}
                       onChange={handleProfileChange}
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                     />
                   </div>
                 </div>
 
                 <div className="flex justify-end pt-3">
-                  <Button type="submit" variant="primary" size="sm" disabled={savingProfile}>
+                  <Button type="submit" variant="primary" size="md" disabled={savingProfile}>
                     {savingProfile ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
@@ -353,8 +354,8 @@ export const ProfilePage = () => {
           </Card>
 
           {/* Account Password Change Card */}
-          <Card className="border-slate-200 shadow-xs">
-            <CardContent className="p-6">
+          <Card className="border-slate-200 shadow-2xs">
+            <CardContent className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <KeyRound className="w-4 h-4 text-blue-600" />
                 <h3 className="font-extrabold text-slate-900 text-sm">
@@ -385,11 +386,11 @@ export const ProfilePage = () => {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Enter existing password"
-                    className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-600 mb-1">New Password</label>
                     <input
@@ -398,7 +399,7 @@ export const ProfilePage = () => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Min 6 characters"
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                     />
                   </div>
                   <div>
@@ -409,13 +410,13 @@ export const ProfilePage = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter password"
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus-ring focus:bg-white"
                     />
                   </div>
                 </div>
 
                 <div className="flex justify-end pt-2">
-                  <Button type="submit" variant="secondary" size="sm" disabled={savingPassword}>
+                  <Button type="submit" variant="secondary" size="md" disabled={savingPassword}>
                     {savingPassword ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />

@@ -11,8 +11,10 @@ import {
   ArrowRight, 
   User, 
   AlertCircle, 
-  Loader2,
-  PlusCircle
+  RotateCw,
+  PlusCircle,
+  Building2,
+  CreditCard
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePortalBranding, HospitalBrandLogo } from '../../context/PortalBrandingContext';
@@ -126,129 +128,135 @@ export const OverviewPage = () => {
 
   const activePatientName = patientProfile?.name || user?.name || 'Patient';
   const uhId = patientProfile?.uhId || user?.uhId || '—';
-  const portalPatientId = patientProfile?.patientId || user?.patientId || '—';
+  const clinicMrn = patientProfile?.patientId || user?.patientId || '—';
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* Patient Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-900 via-blue-700 to-cyan-600 rounded-3xl p-6 sm:p-8 text-white shadow-float relative overflow-hidden">
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold mb-3 border border-white/20">
-            <HeartPulse className="w-3.5 h-3.5" />
-            <span>{hospital?.name || hospitalSlug}</span>
+    <div className="space-y-5 sm:space-y-6">
+      {/* Patient Welcome & Hospital Context Header */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 border border-blue-200/60 flex items-center justify-center font-bold text-lg shrink-0">
+            {activePatientName.charAt(0).toUpperCase()}
           </div>
-
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Welcome back, {activePatientName}
-          </h1>
-
-          <p className="text-blue-100 text-xs sm:text-sm mt-2 leading-relaxed">
-            Your clinical hub for verified appointments, active prescriptions, laboratory pathology reports, and health records.
-          </p>
-
-          {/* Quick Identity Pills */}
-          <div className="flex flex-wrap items-center gap-2.5 mt-4 text-xs font-mono font-medium">
-            <span className="px-3 py-1 rounded-lg bg-black/20 backdrop-blur-xs border border-white/15">
-              UHID: <strong className="text-white">{uhId}</strong>
-            </span>
-            <span className="px-3 py-1 rounded-lg bg-black/20 backdrop-blur-xs border border-white/15">
-              Patient ID: <strong className="text-white">{portalPatientId}</strong>
-            </span>
-            {patientProfile?.bloodGroup && (
-              <span className="px-3 py-1 rounded-lg bg-rose-500/30 backdrop-blur-xs border border-rose-300/30 font-sans">
-                Blood Group: <strong>{patientProfile.bloodGroup}</strong>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight truncate">
+                {activePatientName}
+              </h1>
+              <span className="badge-pill bg-blue-50 text-blue-700 border border-blue-200/60">
+                <Building2 className="w-3 h-3 text-blue-600" />
+                {hospital?.name || hospitalSlug}
               </span>
-            )}
+            </div>
+
+            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
+              <span className="flex items-center gap-1 font-mono font-medium">
+                <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                UHID: {uhId}
+              </span>
+              {clinicMrn !== '—' && (
+                <span className="text-slate-400">
+                  MRN: <strong className="text-slate-700 font-mono">{clinicMrn}</strong>
+                </span>
+              )}
+            </div>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 sm:self-center shrink-0">
+          <Link to={`/${hospitalSlug}/appointments/book`}>
+            <Button variant="primary" size="sm" className="shadow-xs">
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>Book Appointment</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
-      {/* Health Vault Summary Strip */}
-      <HealthVaultStrip 
-        appointmentsCount={appointments.length}
-        prescriptionsCount={prescriptions.length}
-        labsCount={labRequests.length}
-      />
-
-      {/* Error Notice */}
       {error && (
-        <div className="flex items-center gap-2 bg-red-50 text-red-700 text-xs p-3.5 rounded-2xl border border-red-200">
-          <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-          <span>{error}</span>
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs sm:text-sm animate-fadeIn">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+          <span className="flex-1 leading-snug font-medium">{error}</span>
         </div>
       )}
 
-      {/* Quick Actions Grid */}
-      <HospitalQuickActions
-        onBookAppointment={() => navigate(`/${hospitalSlug}/appointments/book`)}
-        onViewPrescriptions={() => navigate(`/${hospitalSlug}/prescriptions`)}
-        onViewLabReports={() => navigate(`/${hospitalSlug}/lab-results`)}
-        onViewMedicalRecords={() => navigate(`/${hospitalSlug}/medical-records`)}
-      />
-
-      {/* Today's OPD Token Queue (if active) */}
+      {/* Today's Live OPD Queue Token (only renders if patient has active queue token today) */}
       {todayTokenAppt && (
         <LiveTokenCard
-          appointment={todayTokenAppt}
-          onViewDetails={() => navigate(`/${hospitalSlug}/appointments`)}
+          todayAppt={todayTokenAppt}
+          onViewAppointmentDetails={() => navigate(`/${hospitalSlug}/appointments`)}
         />
       )}
 
-      {/* 2-Column Main Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Upcoming Appointment & Recent Prescriptions */}
-        <div className="space-y-6">
-          <UpcomingAppointmentCard
-            appointment={upcomingAppointment}
-            onBookNew={() => navigate(`/${hospitalSlug}/appointments/book`)}
-            onViewAll={() => navigate(`/${hospitalSlug}/appointments`)}
-          />
+      {/* Quick Navigation Cards */}
+      <HospitalQuickActions
+        onNavigate={(tab) => {
+          if (tab === 'appointments') navigate(`/${hospitalSlug}/appointments`);
+          if (tab === 'prescriptions') navigate(`/${hospitalSlug}/prescriptions`);
+          if (tab === 'labs') navigate(`/${hospitalSlug}/lab-results`);
+          if (tab === 'records') navigate(`/${hospitalSlug}/medical-records`);
+        }}
+      />
 
-          <RecentPrescriptions
-            prescriptions={prescriptions.slice(0, 3)}
-            onViewAll={() => navigate(`/${hospitalSlug}/prescriptions`)}
+      {/* Biometric Health Vault Strip */}
+      <HealthVaultStrip currentUser={user} patientProfile={patientProfile} />
+
+      {/* Main Grid: Clinical Sections */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-64 rounded-2xl bg-white border border-slate-200/80 p-6 animate-pulse flex flex-col justify-between">
+              <div className="h-4 bg-slate-100 rounded w-1/3 mb-4"></div>
+              <div className="h-24 bg-slate-50 rounded-xl"></div>
+              <div className="h-4 bg-slate-100 rounded w-1/2 mt-4"></div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {/* Column 1: Next Consultation */}
+          <div className="flex flex-col">
+            <UpcomingAppointmentCard
+              upcomingAppt={upcomingAppointment}
+              hospital={hospital}
+              onViewDetails={() => navigate(`/${hospitalSlug}/appointments`)}
+            />
+          </div>
+
+          {/* Column 2: Active Prescriptions */}
+          <div className="flex flex-col">
+            <RecentPrescriptions
+              prescriptions={prescriptions}
+              onViewPrescription={(rx) => navigate(`/${hospitalSlug}/prescriptions?id=${rx._id}`)}
+              onNavigateTab={(tab) => navigate(`/${hospitalSlug}/${tab}`)}
+            />
+          </div>
+
+          {/* Column 3: Diagnostic Pathology */}
+          <div className="flex flex-col">
+            <RecentLabReports
+              labRequests={labRequests}
+              onViewLabReport={(lab) => navigate(`/${hospitalSlug}/lab-results?id=${lab._id}`)}
+              onNavigateTab={() => navigate(`/${hospitalSlug}/lab-results`)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Recent Care History Timeline */}
+      {!loading && (
+        <div className="mt-2">
+          <CareJourneyTimeline
+            appointments={appointments}
+            prescriptions={prescriptions}
+            labRequests={labRequests}
+            onViewAppointment={() => navigate(`/${hospitalSlug}/appointments`)}
             onViewPrescription={(rx) => navigate(`/${hospitalSlug}/prescriptions?id=${rx._id}`)}
+            onViewLabReport={(lab) => navigate(`/${hospitalSlug}/lab-results?id=${lab._id}`)}
+            onNavigateTab={(tab) => navigate(`/${hospitalSlug}/${tab}`)}
           />
         </div>
-
-        {/* Right: Recent Lab Reports & Care Journey Timeline */}
-        <div className="space-y-6">
-          <RecentLabReports
-            labReports={labRequests.slice(0, 3)}
-            onViewAll={() => navigate(`/${hospitalSlug}/lab-results`)}
-            onViewReport={(lab) => navigate(`/${hospitalSlug}/lab-results?id=${lab._id}`)}
-          />
-
-          <Card className="shadow-xs border-slate-200">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <h3 className="font-bold text-slate-900 text-sm">Care Journey Timeline</h3>
-                </div>
-                <Link
-                  to={`/${hospitalSlug}/medical-records`}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5"
-                >
-                  <span>Full Records</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              <CareJourneyTimeline
-                appointments={appointments.slice(0, 4)}
-                prescriptions={prescriptions.slice(0, 4)}
-                labRequests={labRequests.slice(0, 4)}
-                onViewAppointment={() => navigate(`/${hospitalSlug}/appointments`)}
-                onViewPrescription={() => navigate(`/${hospitalSlug}/prescriptions`)}
-                onViewLabReport={() => navigate(`/${hospitalSlug}/lab-results`)}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

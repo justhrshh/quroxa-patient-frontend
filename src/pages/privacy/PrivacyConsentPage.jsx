@@ -80,11 +80,11 @@ export const PrivacyConsentPage = () => {
   const isConsentActive = consentDoc?.status !== 'Withdrawn';
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             Data Privacy & Consent Center
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -96,7 +96,7 @@ export const PrivacyConsentPage = () => {
           variant="outline"
           size="md"
           onClick={() => setIsDpoModalOpen(true)}
-          className="border-red-200 text-red-700 hover:bg-red-50"
+          className="border-red-200 text-red-700 hover:bg-red-50 self-start sm:self-center min-h-[44px]"
         >
           <Ban className="w-4 h-4 mr-2" />
           <span>Exercise DPDP Rights / Withdraw</span>
@@ -111,17 +111,19 @@ export const PrivacyConsentPage = () => {
       )}
 
       {/* Main Consent Status Card */}
-      <Card className="border-slate-200 shadow-xs">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
+      <Card className="border-slate-200 shadow-2xs">
+        <CardContent className="p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shrink-0 ${
-                isConsentActive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shrink-0 border ${
+                isConsentActive
+                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                  : 'bg-red-50 text-red-600 border-red-100'
               }`}>
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-extrabold text-slate-900 text-base">
                     DPDP Consent Status: {consentDoc?.status || 'Active'}
                   </h3>
@@ -131,19 +133,19 @@ export const PrivacyConsentPage = () => {
                     {isConsentActive ? 'Compliant' : 'Withdrawn'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed max-w-xl">
+                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed max-w-xl">
                   {isConsentActive
                     ? 'Your healthcare provider is authorized to maintain electronic medical records, coordinate diagnostic testing, and process treatment prescriptions under DPDP statutory guidelines.'
                     : 'Consent has been formally withdrawn. Electronic medical records creation and sharing are restricted to emergency legal exceptions.'}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-slate-600">
+                <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-5 mt-4 text-xs text-slate-600">
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                     <span>EMR Diagnostic Processing: <strong>{consentDoc?.purposes?.treatment ? 'Permitted' : 'Permitted'}</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                     <span>Third-party Research Sharing: <strong>{consentDoc?.purposes?.research ? 'Permitted' : 'Strictly Restricted'}</strong></span>
                   </div>
                 </div>
@@ -154,8 +156,8 @@ export const PrivacyConsentPage = () => {
       </Card>
 
       {/* DPO Formal Privacy Requests */}
-      <Card className="border-slate-200">
-        <CardContent className="p-6 space-y-4">
+      <Card className="border-slate-200 shadow-2xs">
+        <CardContent className="p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="font-extrabold text-slate-900 text-sm">
@@ -217,7 +219,7 @@ export const PrivacyConsentPage = () => {
                         size="sm"
                         disabled={cancellingRequestId === req._id}
                         onClick={() => handleCancelDpoRequest(req._id)}
-                        className="text-slate-700 hover:text-red-700 self-end sm:self-center"
+                        className="text-slate-700 hover:text-red-700 self-end sm:self-center min-h-[44px]"
                       >
                         {cancellingRequestId === req._id ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />

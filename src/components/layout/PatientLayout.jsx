@@ -1,9 +1,17 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import PatientHeader from './PatientHeader';
 import PatientMobileNav from './PatientMobileNav';
 
 export const PatientLayout = () => {
+  const location = useLocation();
+  // Is this the global login or standalone entry route?
+  const isAuthRoute = location.pathname === '/' || location.pathname === '/login';
+
+  if (isAuthRoute) {
+    return <Outlet />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
       <PatientHeader />

@@ -78,10 +78,10 @@ export const MedicalRecordsPage = () => {
   }, [patientId]);
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
           Electronic Medical Records (EMR)
         </h1>
         <p className="text-xs text-slate-500 mt-1">
@@ -90,7 +90,7 @@ export const MedicalRecordsPage = () => {
       </div>
 
       {error && (
-        <div className="flex items-center justify-between gap-3 bg-amber-50 text-amber-800 text-xs p-4 rounded-2xl border border-amber-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-amber-50 text-amber-800 text-xs p-4 rounded-2xl border border-amber-200">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
             <span>{error}</span>
@@ -103,11 +103,11 @@ export const MedicalRecordsPage = () => {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-1">
+      {/* Tabs - Mobile scrollable with touch target >= 44px */}
+      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
         {[
-          { key: 'visits', label: `Consultation Visits (${visits.length})` },
-          { key: 'vitals', label: `Vital Signs (${vitals.length})` },
+          { key: 'visits', label: `Visits (${visits.length})` },
+          { key: 'vitals', label: `Vitals (${vitals.length})` },
           { key: 'notes', label: `Clinical Notes (${notes.length})` },
           { key: 'procedures', label: `Procedures (${procedures.length})` },
           { key: 'documents', label: `Documents (${documents.length})` }
@@ -115,7 +115,7 @@ export const MedicalRecordsPage = () => {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`pb-3 px-3 text-xs font-bold border-b-2 whitespace-nowrap transition ${
+            className={`min-h-[44px] pb-3 px-3.5 text-xs font-bold border-b-2 whitespace-nowrap transition flex items-center ${
               activeTab === tab.key
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -143,11 +143,11 @@ export const MedicalRecordsPage = () => {
               <EmptyState title="No Consultation Visits Recorded" desc="Historical doctor consultations and clinical admissions will appear here." />
             ) : (
               visits.map(visit => (
-                <Card key={visit._id} className="border-slate-200">
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between">
+                <Card key={visit._id} className="border-slate-200 shadow-2xs">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                        <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0 border border-blue-100/80">
                           <Stethoscope className="w-5 h-5" />
                         </div>
                         <div>
@@ -157,18 +157,18 @@ export const MedicalRecordsPage = () => {
                           <p className="text-xs text-slate-500 font-medium">
                             Attending Doctor: Dr. {visit.doctorId?.name?.replace(/^Dr\.\s*/i, '') || 'Consultant'}
                           </p>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-xs text-slate-400">
                             <span>Date: {new Date(visit.createdAt || visit.date).toLocaleDateString('en-IN')}</span>
-                            {visit.department && <span>• Dept: {visit.department}</span>}
+                            {visit.department && <span>&bull; Dept: {visit.department}</span>}
                           </div>
                           {visit.chiefComplaint && (
-                            <p className="text-xs text-slate-700 mt-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                              <strong>Chief Complaint:</strong> {visit.chiefComplaint}
+                            <p className="text-xs text-slate-700 mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                              <strong className="text-slate-900">Chief Complaint:</strong> {visit.chiefComplaint}
                             </p>
                           )}
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0">
                         {visit.status || 'Completed'}
                       </span>
                     </div>
@@ -185,8 +185,8 @@ export const MedicalRecordsPage = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {vitals.map(v => (
-                  <Card key={v._id} className="border-slate-200">
-                    <CardContent className="p-5 space-y-3">
+                  <Card key={v._id} className="border-slate-200 shadow-2xs">
+                    <CardContent className="p-4 sm:p-5 space-y-3">
                       <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                         <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                           <HeartPulse className="w-4 h-4 text-rose-500" />
@@ -198,24 +198,24 @@ export const MedicalRecordsPage = () => {
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                           <span className="text-slate-400 text-[10px] uppercase font-bold block">Blood Pressure</span>
-                          <span className="text-sm font-extrabold text-slate-900 font-mono">{v.bloodPressure || '—'}</span>
+                          <span className="text-base font-black text-slate-900 font-mono">{v.bloodPressure || '—'}</span>
                           <span className="text-[10px] text-slate-400 ml-1">mmHg</span>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                           <span className="text-slate-400 text-[10px] uppercase font-bold block">Heart Rate</span>
-                          <span className="text-sm font-extrabold text-slate-900 font-mono">{v.heartRate || '—'}</span>
+                          <span className="text-base font-black text-slate-900 font-mono">{v.heartRate || '—'}</span>
                           <span className="text-[10px] text-slate-400 ml-1">bpm</span>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                           <span className="text-slate-400 text-[10px] uppercase font-bold block">Temperature</span>
-                          <span className="text-sm font-extrabold text-slate-900 font-mono">{v.temperature || '—'}</span>
+                          <span className="text-base font-black text-slate-900 font-mono">{v.temperature || '—'}</span>
                           <span className="text-[10px] text-slate-400 ml-1">°F</span>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                           <span className="text-slate-400 text-[10px] uppercase font-bold block">SpO2 Oxygen</span>
-                          <span className="text-sm font-extrabold text-slate-900 font-mono">{v.spO2 || '—'}</span>
+                          <span className="text-base font-black text-slate-900 font-mono">{v.spO2 || '—'}</span>
                           <span className="text-[10px] text-slate-400 ml-1">%</span>
                         </div>
                       </div>
@@ -232,16 +232,16 @@ export const MedicalRecordsPage = () => {
               <EmptyState title="No Doctor Notes Available" desc="Doctor examination findings and clinical impressions will be listed here." />
             ) : (
               notes.map(note => (
-                <Card key={note._id} className="border-slate-200">
-                  <CardContent className="p-5 space-y-2 text-xs">
+                <Card key={note._id} className="border-slate-200 shadow-2xs">
+                  <CardContent className="p-4 sm:p-5 space-y-2 text-xs">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                       <span className="font-bold text-slate-800">Dr. {note.doctorId?.name?.replace(/^Dr\.\s*/i, '') || 'Consultant'}</span>
                       <span className="text-slate-400 text-[11px]">{new Date(note.createdAt).toLocaleDateString('en-IN')}</span>
                     </div>
-                    {note.subjective && <p><strong>Subjective:</strong> {note.subjective}</p>}
-                    {note.objective && <p><strong>Objective:</strong> {note.objective}</p>}
-                    {note.assessment && <p><strong>Assessment:</strong> {note.assessment}</p>}
-                    {note.plan && <p><strong>Plan:</strong> {note.plan}</p>}
+                    {note.subjective && <p><strong className="text-slate-700">Subjective:</strong> {note.subjective}</p>}
+                    {note.objective && <p><strong className="text-slate-700">Objective:</strong> {note.objective}</p>}
+                    {note.assessment && <p><strong className="text-slate-700">Assessment:</strong> {note.assessment}</p>}
+                    {note.plan && <p><strong className="text-slate-700">Plan:</strong> {note.plan}</p>}
                   </CardContent>
                 </Card>
               ))
@@ -254,8 +254,8 @@ export const MedicalRecordsPage = () => {
               <EmptyState title="No Recorded Procedures" desc="Medical treatments, minor operations, and therapeutic procedures will appear here." />
             ) : (
               procedures.map(p => (
-                <Card key={p._id} className="border-slate-200">
-                  <CardContent className="p-5 text-xs">
+                <Card key={p._id} className="border-slate-200 shadow-2xs">
+                  <CardContent className="p-4 sm:p-5 text-xs">
                     <div className="flex items-center justify-between">
                       <h4 className="font-bold text-slate-900 text-sm">{p.procedureName || 'Medical Procedure'}</h4>
                       <span className="text-slate-400">{new Date(p.createdAt).toLocaleDateString('en-IN')}</span>
@@ -274,15 +274,15 @@ export const MedicalRecordsPage = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {documents.map(doc => (
-                  <Card key={doc._id} className="border-slate-200">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold">
+                  <Card key={doc._id} className="border-slate-200 shadow-2xs">
+                    <CardContent className="p-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold shrink-0 border border-cyan-100/80">
                           <FileText className="w-5 h-5" />
                         </div>
-                        <div>
-                          <h4 className="font-bold text-slate-900 text-xs">{doc.documentName || doc.title || 'Clinical Document'}</h4>
-                          <p className="text-[11px] text-slate-400">{doc.category || 'Diagnostic'} • {new Date(doc.createdAt).toLocaleDateString('en-IN')}</p>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-slate-900 text-xs truncate">{doc.documentName || doc.title || 'Clinical Document'}</h4>
+                          <p className="text-[11px] text-slate-400 truncate">{doc.category || 'Diagnostic'} &bull; {new Date(doc.createdAt).toLocaleDateString('en-IN')}</p>
                         </div>
                       </div>
                       {doc.fileUrl && (
@@ -290,7 +290,8 @@ export const MedicalRecordsPage = () => {
                           href={doc.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition"
+                          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition shrink-0"
+                          aria-label="Download Document"
                         >
                           <Download className="w-4 h-4" />
                         </a>
