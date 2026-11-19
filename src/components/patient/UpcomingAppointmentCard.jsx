@@ -1,5 +1,6 @@
 import React from 'react';
-import { Calendar, Clock, User, ArrowRight, CheckCircle2, Ticket } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Calendar, Clock, User, ArrowRight, CheckCircle2, Ticket, Plus } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 
 export const UpcomingAppointmentCard = ({
@@ -8,17 +9,25 @@ export const UpcomingAppointmentCard = ({
   onViewDetails
 }) => {
   if (!upcomingAppt) {
+    const tenantSlug = hospital?.tenantId || hospital?.code || 'hospital';
     return (
-      <Card className="h-full flex flex-col justify-between">
+      <Card className="h-full flex flex-col justify-between border-slate-200/90 shadow-xs hover:border-blue-300 transition">
         <CardHeader title="Next Consultation" />
-        <CardContent className="flex flex-col items-center justify-center text-center py-6 sm:py-8">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 border border-slate-200/60 flex items-center justify-center mb-3">
-            <Calendar className="w-5 h-5" />
+        <CardContent className="flex flex-col items-center justify-center text-center py-6 sm:py-8 my-auto">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center mb-3 shadow-2xs">
+            <Calendar className="w-6 h-6 text-blue-600" />
           </div>
-          <h4 className="text-sm font-bold text-slate-800">No Upcoming Appointments</h4>
-          <p className="text-xs text-slate-500 mt-1 max-w-[220px]">
-            Your next doctor consultation and queue slot will appear here.
+          <h4 className="text-sm font-black text-slate-800">No Upcoming Appointments</h4>
+          <p className="text-xs text-slate-500 mt-1 max-w-[240px] leading-relaxed">
+            Book an in-person or OPD consultation with your affiliated hospital doctors.
           </p>
+          <Link
+            to={`/${tenantSlug}/appointments/book`}
+            className="mt-4 px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200 flex items-center gap-1.5 transition shadow-2xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Book Consultation</span>
+          </Link>
         </CardContent>
       </Card>
     );

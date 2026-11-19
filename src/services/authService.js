@@ -246,6 +246,41 @@ export const authService = {
     } catch (_) {
       return { success: true };
     }
+  },
+
+  /**
+   * Discovers nearby hospitals using GPS coordinates or 6-digit Indian PIN code.
+   * Authenticated with patient global session token.
+   */
+  async getNearbyHospitals({ latitude, longitude, lat, lng, pincode, radiusKm, limit, globalToken } = {}) {
+    const payload = {};
+    const rawLat = lat !== undefined ? lat : latitude;
+    const rawLng = lng !== undefined ? lng : longitude;
+
+    if (rawLat !== undefined && rawLat !== null && String(rawLat).trim() !== '') {
+      payload.lat = Number(rawLat);
+    }
+    if (rawLng !== undefined && rawLng !== null && String(rawLng).trim() !== '') {
+      payload.lng = Number(rawLng);
+    }
+    if (pincode !== undefined && pincode !== null && String(pincode).trim() !== '') {
+      payload.pincode = String(pincode).trim();
+    }
+    if (radiusKm) payload.radiusKm = Number(radiusKm);
+    if (limit) payload.limit = Number(limit);
+
+    const headers = {};
+    const token = globalToken || localStorage.getItem('quroxa_global_token') || localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await api.post(
+      '/auth/patient-portal/global/nearby-hospitals',
+      payload,
+      { headers }
+    );
+    return response.data;
   }
 };
 

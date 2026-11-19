@@ -26,13 +26,20 @@ export const RecentPrescriptions = ({
       <CardContent className="flex-1 flex flex-col justify-between">
         {displayRx.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-6 sm:py-8 my-auto">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 border border-slate-200/60 flex items-center justify-center mb-3">
-              <Pill className="w-5 h-5" />
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 border border-purple-200/80 flex items-center justify-center mb-3 shadow-2xs">
+              <Pill className="w-6 h-6 text-purple-600" />
             </div>
-            <h4 className="text-sm font-bold text-slate-800">No Prescriptions Issued</h4>
-            <p className="text-xs text-slate-500 mt-1 max-w-[220px]">
-              Active medications prescribed during clinic consultations will be listed here.
+            <h4 className="text-sm font-black text-slate-800">No Prescriptions Issued</h4>
+            <p className="text-xs text-slate-500 mt-1 max-w-[240px] leading-relaxed">
+              Active medications prescribed during clinic consultations will be safely stored here.
             </p>
+            <button
+              type="button"
+              onClick={() => onNavigateTab && onNavigateTab('prescriptions')}
+              className="mt-4 px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs border border-purple-200 flex items-center gap-1.5 transition shadow-2xs"
+            >
+              <span>View Rx Vault</span>
+            </button>
           </div>
         ) : (
           <div className="space-y-2.5">

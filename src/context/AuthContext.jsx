@@ -115,6 +115,57 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
+  // Mandatory Location Setup State (Phase 4 Location Gate)
+  const [patientLocation, setPatientLocationState] = useState(() => {
+    try {
+      const sess = sessionStorage.getItem('quroxa_patient_location');
+      if (sess) return JSON.parse(sess);
+      // For returning patients: restore previously remembered 6-digit PIN code
+      const savedPin = localStorage.getItem('quroxa_patient_pincode');
+      if (savedPin && /^[1-9][0-9]{5}$/.test(savedPin)) {
+        return {
+          type: 'pincode',
+          pincode: savedPin,
+          isApproximate: true,
+          isRestored: true
+        };
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const setPatientLocation = useCallback((loc) => {
+    try {
+      if (loc) {
+        if (loc.pincode && /^[1-9][0-9]{5}$/.test(loc.pincode)) {
+          localStorage.setItem('quroxa_patient_pincode', loc.pincode);
+        }
+        // Save session location without precise GPS coordinates
+        const safeSession = {
+          type: loc.type || (loc.pincode ? 'pincode' : 'gps'),
+          pincode: loc.pincode || null,
+          district: loc.district || null,
+          state: loc.state || null,
+          isApproximate: Boolean(loc.isApproximate || loc.type === 'pincode'),
+          verifiedAt: Date.now()
+        };
+        sessionStorage.setItem('quroxa_patient_location', JSON.stringify(safeSession));
+      } else {
+        sessionStorage.removeItem('quroxa_patient_location');
+      }
+    } catch (e) {}
+    setPatientLocationState(loc);
+  }, []);
+
+  const clearPatientLocation = useCallback(() => {
+    try {
+      sessionStorage.removeItem('quroxa_patient_location');
+    } catch (e) {}
+    setPatientLocationState(null);
+  }, []);
+
   const [loading, setLoading] = useState(false);
 
   const setGlobalSession = useCallback((newToken, newPatient) => {
@@ -190,12 +241,14 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('quroxa_global_token');
       localStorage.removeItem('quroxa_global_patient');
       sessionStorage.removeItem('quroxa_temp_reg');
+      sessionStorage.removeItem('quroxa_patient_location');
     } catch (e) {}
     setToken(null);
     setUser(null);
     setGlobalToken(null);
     setGlobalPatient(null);
     setTempRegistrationState(null);
+    setPatientLocationState(null);
   }, []);
 
   // Silent Global Token Refresh
@@ -283,6 +336,10 @@ export const AuthProvider = ({ children }) => {
     globalPatient
   );
 
+  const isLocationSetupComplete = Boolean(
+    patientLocation && (patientLocation.type === 'gps' || patientLocation.pincode)
+  );
+
   const value = {
     token,
     user,
@@ -290,6 +347,10 @@ export const AuthProvider = ({ children }) => {
     globalToken,
     globalPatient,
     isGlobalAuthenticated,
+    patientLocation,
+    isLocationSetupComplete,
+    setPatientLocation,
+    clearPatientLocation,
     loading,
     setLoading,
     tempRegistration,

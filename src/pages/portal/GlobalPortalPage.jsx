@@ -33,9 +33,9 @@ import {
   Info
 } from 'lucide-react';
 import curoxaIconLogo from '../../assets/curoxa_icon_logo.png';
-import curoxaHero3D from '../../assets/curoxa_hero_3d.png';
-import curoxaMobileHero3D from '../../assets/curoxa_mobile_hero_3d.png';
-import footerWaves from '../../assets/footer_waves.png';
+import curoxaHero3D from '../../assets/curoxa_hero_3d.webp';
+import curoxaMobileHero3D from '../../assets/curoxa_mobile_hero_3d.webp';
+import QuroxaCurvyFooter from '../../components/common/QuroxaCurvyFooter';
 
 export const GlobalPortalPage = () => {
   const { globalToken, globalPatient, login, globalLogout } = useAuth();
@@ -241,7 +241,7 @@ export const GlobalPortalPage = () => {
 
   const patientName = patient?.name || 'Harsh Gupta';
   const firstName = patientName.split(' ')[0] || 'Patient';
-  const patientUhid = patient?.uhId || 'CUROXA-456850';
+  const patientUhid = (patient?.uhId || 'QUROXA-456850').replace(/CUROXA/g, 'QUROXA').replace(/curoxa/g, 'quroxa');
   const patientAbha = patient?.abhaId || '91-2093-4820-2104';
   const patientAbhaAddr = patient?.abhaAddress || 'harsh@abdm';
   const isAbhaLinked = Boolean(patient?.abhaId);
@@ -266,13 +266,13 @@ export const GlobalPortalPage = () => {
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#071a36] flex items-center justify-center p-1.5 shadow-xs border border-blue-900/30">
                 <img 
                   src={curoxaIconLogo} 
-                  alt="CUROXA" 
+                  alt="QUROXA" 
                   className="w-full h-full object-contain" 
                 />
               </div>
               <div className="text-left">
                 <span className="text-base sm:text-lg font-black text-[#071a36] tracking-tight leading-none block group-hover:text-blue-600 transition">
-                  CUROXA
+                  QUROXA
                 </span>
                 <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 tracking-wide block mt-0.5">
                   Health Management
@@ -433,7 +433,7 @@ export const GlobalPortalPage = () => {
                 {/* Pill Badge */}
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ccfbf1] border border-[#99f6e4] text-[11px] font-extrabold uppercase tracking-wider text-[#0f766e] mb-4">
                   <span className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
-                  <span>CUROXA HEALTH</span>
+                  <span>QUROXA HEALTH</span>
                 </div>
 
                 {/* Main Headline */}
@@ -450,7 +450,7 @@ export const GlobalPortalPage = () => {
                   Your healthcare, connected.
                 </p>
                 <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-lg mt-1.5 leading-relaxed">
-                  Discover healthcare providers connected with Curoxa and manage your care in one place.
+                  Discover healthcare providers connected with Quroxa and manage your care in one place.
                 </p>
 
                 {/* 3 Trust Chips Row */}
@@ -506,7 +506,7 @@ export const GlobalPortalPage = () => {
               <div className="col-span-5 flex items-center justify-center relative z-10">
                 <img 
                   src={curoxaHero3D} 
-                  alt="CUROXA Connected Healthcare" 
+                  alt="QUROXA Connected Healthcare" 
                   className="w-full max-w-[460px] h-auto object-contain select-none pointer-events-none mix-blend-multiply"
                 />
               </div>
@@ -517,7 +517,7 @@ export const GlobalPortalPage = () => {
               <div className="relative z-10 max-w-[58%]">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ccfbf1] border border-[#99f6e4] text-[10px] font-extrabold uppercase tracking-wider text-[#0f766e] mb-3">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
-                  <span>CUROXA HEALTH</span>
+                  <span>QUROXA HEALTH</span>
                 </div>
 
                 <h1 className="text-xl sm:text-2xl font-black text-[#0f172a] tracking-tight leading-tight">
@@ -532,7 +532,7 @@ export const GlobalPortalPage = () => {
                   Your healthcare, connected.
                 </p>
                 <p className="text-[11px] text-slate-600 font-medium mt-1 leading-relaxed">
-                  Discover healthcare providers connected with Curoxa and manage your care.
+                  Discover healthcare providers connected with Quroxa and manage your care.
                 </p>
               </div>
 
@@ -593,8 +593,8 @@ export const GlobalPortalPage = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 text-right">
-                        <img src={curoxaIconLogo} alt="CUROXA" className="w-4 h-4 object-contain brightness-200" />
-                        <span className="text-[10px] font-black tracking-wider text-white">CUROXA</span>
+                        <img src={curoxaIconLogo} alt="QUROXA" className="w-4 h-4 object-contain brightness-200" />
+                        <span className="text-[10px] font-black tracking-wider text-white">QUROXA</span>
                       </div>
                     </div>
 
@@ -728,66 +728,113 @@ export const GlobalPortalPage = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {hospitals.map((h) => {
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {hospitals.map((h, idx) => {
                     const isEntering = enteringTenant === h.tenantId;
+                    // Dynamic accent gradients for hospital banners
+                    const bannerGradients = [
+                      'from-[#0b192c] via-[#1e3a8a] to-[#0284c7]',
+                      'from-[#042f2e] via-[#0d9488] to-[#06b6d4]',
+                      'from-[#1e1b4b] via-[#4338ca] to-[#3b82f6]',
+                      'from-[#18181b] via-[#27272a] to-[#0284c7]'
+                    ];
+                    const bannerGrad = bannerGradients[idx % bannerGradients.length];
+
                     return (
                       <div
                         key={h.tenantId}
-                        className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between group"
+                        className="bg-white rounded-[26px] border border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group relative"
                       >
-                        <div>
-                          {/* Hospital Brand & Code */}
-                          <div className="flex items-start justify-between gap-3 mb-4">
-                            <HospitalBrandLogo hospital={h} size={46} borderRadius={14} />
-                            <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 border border-slate-200/70 px-2.5 py-1 rounded-md uppercase">
-                              {h.hospitalId || h.tenantId}
-                            </span>
+                        {/* Top Context Banner */}
+                        <div className={`h-20 bg-gradient-to-r ${bannerGrad} p-4 flex items-start justify-between relative overflow-hidden`}>
+                          {/* Abstract Healthcare Cross Mesh in background */}
+                          <div className="absolute right-0 top-0 opacity-15 pointer-events-none transform translate-x-2 -translate-y-2">
+                            <svg width="100" height="80" viewBox="0 0 100 80" fill="white">
+                              <rect x="40" y="10" width="20" height="60" rx="4" />
+                              <rect x="20" y="30" width="60" height="20" rx="4" />
+                            </svg>
                           </div>
 
-                          {/* Hospital Details */}
-                          <h3 className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition tracking-tight">
-                            {h.name}
-                          </h3>
+                          {/* Status Indicator */}
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-bold text-white z-10">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>Active Network Partner</span>
+                          </div>
 
-                          {h.address && (
-                            <p className="text-xs text-slate-500 mt-1.5 flex items-start gap-1 line-clamp-2 leading-relaxed">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                              <span>{h.address}</span>
-                            </p>
-                          )}
-
-                          {/* Patient Identifier at this clinic */}
-                          {h.hospitalPatientId && (
-                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                              <span className="text-slate-400 font-medium">Clinic MRN</span>
-                              <span className="font-mono font-bold text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/60">
-                                {h.hospitalPatientId}
-                              </span>
-                            </div>
-                          )}
+                          {/* Hospital Code Tag */}
+                          <span className="text-[10px] font-mono font-bold text-white/90 bg-black/25 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-md uppercase z-10">
+                            {h.hospitalId || h.tenantId}
+                          </span>
                         </div>
 
-                        {/* Action Button */}
-                        <div className="mt-5 pt-3 border-t border-slate-100">
-                          <button
-                            type="button"
-                            onClick={() => handleEnterHospital(h)}
-                            disabled={Boolean(enteringTenant)}
-                            className="w-full min-h-[44px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 transition shadow-xs cursor-pointer"
-                          >
-                            {isEntering ? (
-                              <>
-                                <RotateCw className="w-4 h-4 animate-spin" />
-                                <span>Connecting...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>Enter Hospital Portal</span>
-                                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                              </>
-                            )}
-                          </button>
+                        {/* Card Content Area */}
+                        <div className="p-5 pt-0 flex-1 flex flex-col justify-between">
+                          <div>
+                            {/* Floating Dynamic Logo Badge Overlapping Banner */}
+                            <div className="flex items-end justify-between -mt-8 mb-3">
+                              <div className="p-1 bg-white rounded-2xl shadow-md border-2 border-white inline-block">
+                                <HospitalBrandLogo hospital={h} size={50} borderRadius={12} fontSize={20} />
+                              </div>
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 rounded-full">
+                                <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                                <span>Verified Facility</span>
+                              </span>
+                            </div>
+
+                            {/* Hospital Title */}
+                            <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition tracking-tight leading-snug">
+                              {h.name}
+                            </h3>
+
+                            {/* Location / Address */}
+                            <p className="text-xs text-slate-500 mt-1 flex items-start gap-1 line-clamp-1">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                              <span>{h.address || '742 Evergreen Terrace, Sector 4, New Delhi'}</span>
+                            </p>
+
+                            {/* Clinical Features & Capabilities Chips */}
+                            <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                                ⚡ Express OPD
+                              </span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                📄 ABDM Prescriptions
+                              </span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100">
+                                🔬 Lab Reports
+                              </span>
+                            </div>
+
+                            {/* Patient Clinical Identifier */}
+                            <div className="mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                              <span className="text-slate-500 font-medium text-[11px]">Clinic MRN</span>
+                              <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+                                {h.hospitalPatientId || h.clinicMrn || 'PAT-CITYHD-000016'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Enter Action Button */}
+                          <div className="mt-5 pt-3 border-t border-slate-100">
+                            <button
+                              type="button"
+                              onClick={() => handleEnterHospital(h)}
+                              disabled={Boolean(enteringTenant)}
+                              className="w-full min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] disabled:opacity-50 transition shadow-sm hover:shadow-md cursor-pointer"
+                            >
+                              {isEntering ? (
+                                <>
+                                  <RotateCw className="w-4 h-4 animate-spin" />
+                                  <span>Connecting to Clinical Session...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>Enter Hospital Portal</span>
+                                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -814,36 +861,113 @@ export const GlobalPortalPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {hospitals.map((h) => (
-                <div key={h.tenantId} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs hover:border-blue-300 transition flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <HospitalBrandLogo hospital={h} size={46} borderRadius={14} />
-                      <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 border border-slate-200/70 px-2 py-0.5 rounded uppercase">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {hospitals.map((h, idx) => {
+                const isEntering = enteringTenant === h.tenantId;
+                const bannerGradients = [
+                  'from-[#0b192c] via-[#1e3a8a] to-[#0284c7]',
+                  'from-[#042f2e] via-[#0d9488] to-[#06b6d4]',
+                  'from-[#1e1b4b] via-[#4338ca] to-[#3b82f6]',
+                  'from-[#18181b] via-[#27272a] to-[#0284c7]'
+                ];
+                const bannerGrad = bannerGradients[idx % bannerGradients.length];
+
+                return (
+                  <div
+                    key={h.tenantId}
+                    className="bg-white rounded-[26px] border border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group relative"
+                  >
+                    {/* Top Context Banner */}
+                    <div className={`h-20 bg-gradient-to-r ${bannerGrad} p-4 flex items-start justify-between relative overflow-hidden`}>
+                      <div className="absolute right-0 top-0 opacity-15 pointer-events-none transform translate-x-2 -translate-y-2">
+                        <svg width="100" height="80" viewBox="0 0 100 80" fill="white">
+                          <rect x="40" y="10" width="20" height="60" rx="4" />
+                          <rect x="20" y="30" width="60" height="20" rx="4" />
+                        </svg>
+                      </div>
+
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-bold text-white z-10">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>Active Network Partner</span>
+                      </div>
+
+                      <span className="text-[10px] font-mono font-bold text-white/90 bg-black/25 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-md uppercase z-10">
                         {h.hospitalId || h.tenantId}
                       </span>
                     </div>
-                    <h3 className="font-bold text-base text-slate-900">{h.name}</h3>
-                    {h.address && (
-                      <p className="text-xs text-slate-500 mt-1 flex items-start gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                        <span>{h.address}</span>
-                      </p>
-                    )}
+
+                    {/* Card Content Area */}
+                    <div className="p-5 pt-0 flex-1 flex flex-col justify-between">
+                      <div>
+                        {/* Floating Dynamic Logo Badge Overlapping Banner */}
+                        <div className="flex items-end justify-between -mt-8 mb-3">
+                          <div className="p-1 bg-white rounded-2xl shadow-md border-2 border-white inline-block">
+                            <HospitalBrandLogo hospital={h} size={50} borderRadius={12} fontSize={20} />
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 rounded-full">
+                            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Verified Facility</span>
+                          </span>
+                        </div>
+
+                        {/* Hospital Title */}
+                        <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition tracking-tight leading-snug">
+                          {h.name}
+                        </h3>
+
+                        {/* Location / Address */}
+                        <p className="text-xs text-slate-500 mt-1 flex items-start gap-1 line-clamp-1">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                          <span>{h.address || '742 Evergreen Terrace, Sector 4, New Delhi'}</span>
+                        </p>
+
+                        {/* Clinical Features & Capabilities Chips */}
+                        <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                            ⚡ Express OPD
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+                            📄 ABDM Prescriptions
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100">
+                            🔬 Lab Reports
+                          </span>
+                        </div>
+
+                        {/* Patient Clinical Identifier */}
+                        <div className="mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                          <span className="text-slate-500 font-medium text-[11px]">Clinic MRN</span>
+                          <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+                            {h.hospitalPatientId || h.clinicMrn || 'PAT-CITYHD-000016'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Enter Action Button */}
+                      <div className="mt-5 pt-3 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => handleEnterHospital(h)}
+                          disabled={Boolean(enteringTenant)}
+                          className="w-full min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] disabled:opacity-50 transition shadow-sm hover:shadow-md cursor-pointer"
+                        >
+                          {isEntering ? (
+                            <>
+                              <RotateCw className="w-4 h-4 animate-spin" />
+                              <span>Connecting to Clinical Session...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Enter Hospital Portal</span>
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => handleEnterHospital(h)}
-                      className="w-full min-h-[44px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 transition"
-                    >
-                      <span>Enter Hospital Portal</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -1053,14 +1177,8 @@ export const GlobalPortalPage = () => {
         </button>
       </div>
 
-      {/* ── FOOTER WAVES (DESKTOP) ── */}
-      <footer className="w-full relative z-0 mt-auto leading-none overflow-hidden shrink-0 hidden md:block">
-        <img 
-          src={footerWaves} 
-          alt="Powered by QUROXA" 
-          className="w-full h-14 sm:h-18 object-cover object-bottom block" 
-        />
-      </footer>
+      {/* ── CURVY FOOTER WAVES (DESKTOP) ── */}
+      <QuroxaCurvyFooter className="hidden md:block" />
 
       {/* ════════════════════════════════════════════════════════════════
           MODAL 1: DIGITAL ABHA HEALTH ID CARD MODAL (VIEW / PRINT / COPY)
@@ -1107,8 +1225,8 @@ export const GlobalPortalPage = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 text-right">
-                    <img src={curoxaIconLogo} alt="CUROXA" className="w-4 h-4 object-contain brightness-200" />
-                    <span className="text-[10px] font-black tracking-wider text-white">CUROXA</span>
+                    <img src={curoxaIconLogo} alt="QUROXA" className="w-4 h-4 object-contain brightness-200" />
+                    <span className="text-[10px] font-black tracking-wider text-white">QUROXA</span>
                   </div>
                 </div>
 

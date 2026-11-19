@@ -20,8 +20,8 @@ import {
 
 import curoxaIconLogo from '../../assets/curoxa_icon_logo.png';
 import heroCleanTop from '../../assets/hero_clean_top.png';
-import footerWaves from '../../assets/footer_waves.png';
 import heroDesktopBg from '../../assets/hero_desktop_bg.jpg';
+import QuroxaCurvyFooter from '../../components/common/QuroxaCurvyFooter';
 
 export const GlobalLoginPage = () => {
   const [searchParams] = useSearchParams();
@@ -159,33 +159,33 @@ export const GlobalLoginPage = () => {
   };
 
   const renderLoginCard = () => (
-    <div className="w-full max-w-[440px] xl:max-w-[460px] relative">
-      {/* Overhanging Official CUROXA Brand Badge */}
-      <div className="absolute -top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-20">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#071a36] shadow-xl flex items-center justify-center border-[3px] border-white">
+    <div className="w-full max-w-[420px] xl:max-w-[440px] relative">
+      {/* Overhanging Official QUROXA Brand Badge */}
+      <div className="absolute -top-6 sm:-top-7 left-1/2 -translate-x-1/2 z-20">
+        <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#071a36] shadow-xl flex items-center justify-center border-[3px] border-white">
           <img 
             src={curoxaIconLogo} 
-            alt="CUROXA Brand Icon" 
-            className="w-8 h-8 sm:w-9.5 sm:h-9.5 object-contain" 
+            alt="QUROXA Brand Icon" 
+            className="w-7 h-7 sm:w-8 sm:h-8 object-contain" 
           />
         </div>
       </div>
 
       {/* White Card Body */}
-      <div className="bg-white rounded-[32px] sm:rounded-[36px] shadow-[0_20px_50px_rgba(15,31,61,0.12)] border border-slate-100/90 px-5 py-6 pt-9 sm:px-8 sm:py-7 sm:pt-10">
+      <div className="bg-white rounded-[28px] sm:rounded-[32px] shadow-[0_20px_50px_rgba(15,31,61,0.12)] border border-slate-100/90 px-5 py-4 pt-7 sm:px-7 sm:py-5 sm:pt-8">
         {/* Card Titles exactly matching reference */}
         <div className="text-center">
-          <h2 className="text-xl sm:text-2xl font-black text-[#071a36] tracking-wider uppercase">
+          <h2 className="text-lg sm:text-xl font-black text-[#071a36] tracking-wider uppercase">
             QUROXA
           </h2>
-          <p className="text-xs sm:text-[13px] font-bold text-[#1d4ed8] tracking-widest uppercase mt-1">
+          <p className="text-[11px] sm:text-xs font-bold text-[#1d4ed8] tracking-widest uppercase mt-0.5">
             GLOBAL PATIENT PORTAL
           </p>
 
-          <h3 className="text-xl sm:text-2xl font-black text-[#071a36] tracking-tight mt-3 sm:mt-4">
+          <h3 className="text-lg sm:text-xl font-black text-[#071a36] tracking-tight mt-2 sm:mt-2.5">
             {step === 'otp' ? 'Verification Code' : 'Welcome back!'}
           </h3>
-          <p className="text-xs sm:text-[13px] text-slate-500 font-medium max-w-[320px] mx-auto mt-1 leading-relaxed">
+          <p className="text-xs text-slate-500 font-medium max-w-[300px] mx-auto mt-0.5 leading-relaxed">
             {step === 'otp'
               ? `Enter the 6-digit code sent to ${maskedTarget}`
               : 'Sign in with your registered mobile number to access your healthcare information.'}
@@ -194,7 +194,7 @@ export const GlobalLoginPage = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="mt-3.5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs animate-fadeIn">
+          <div className="mt-2.5 p-2.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-red-700 text-xs animate-fadeIn">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
             <span className="flex-1 font-medium leading-snug">{error}</span>
           </div>
@@ -202,15 +202,15 @@ export const GlobalLoginPage = () => {
 
         {/* ── STEP 1: MOBILE ENTRY ── */}
         {step === 'phone' && (
-          <form onSubmit={handleSendOtp} className="mt-5 space-y-3.5 sm:space-y-4">
+          <form onSubmit={handleSendOtp} className="mt-3.5 space-y-2.5 sm:space-y-3">
             {/* Mobile Number Input Container */}
-            <div className="rounded-2xl border border-blue-200/90 bg-white hover:border-blue-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/20 transition min-h-[50px] sm:min-h-[54px] px-3.5 sm:px-4 flex items-center gap-3 shadow-2xs">
+            <div className="rounded-2xl border border-blue-200/90 bg-white hover:border-blue-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/20 transition min-h-[46px] sm:min-h-[48px] px-3.5 flex items-center gap-2.5 shadow-2xs">
               {/* Dark navy circular phone icon */}
-              <div className="w-8 h-8 rounded-full bg-[#071a36] text-white flex items-center justify-center shrink-0">
-                <Phone className="w-3.5 h-3.5 fill-white text-white" />
+              <div className="w-7 h-7 rounded-full bg-[#071a36] text-white flex items-center justify-center shrink-0">
+                <Phone className="w-3 h-3 fill-white text-white" />
               </div>
               {/* Subtle +91 indicator */}
-              <span className="text-xs sm:text-sm font-bold text-slate-500 select-none border-r border-slate-200 pr-2.5">
+              <span className="text-xs sm:text-sm font-bold text-slate-500 select-none border-r border-slate-200 pr-2">
                 +91
               </span>
               {/* Input field */}
@@ -226,29 +226,29 @@ export const GlobalLoginPage = () => {
                   setMobile(val);
                   if (error) setError('');
                 }}
-                className="w-full text-sm sm:text-base font-semibold text-slate-800 placeholder:text-slate-400 bg-transparent outline-none"
+                className="w-full text-sm font-semibold text-slate-800 placeholder:text-slate-400 bg-transparent outline-none"
                 disabled={loading}
                 autoFocus
               />
             </div>
 
             {/* Privacy Information Strip (DPDP Act 2023) */}
-            <div className="rounded-2xl bg-[#e8f7f5] border border-[#bbf0e7] py-2.5 px-3 sm:py-3 sm:px-4 flex items-center justify-between gap-2.5 transition">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-5 h-5 rounded-full bg-[#0d9488] text-white flex items-center justify-center shrink-0">
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+            <div className="rounded-2xl bg-[#e8f7f5] border border-[#bbf0e7] py-2 px-3 flex items-center justify-between gap-2 transition">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-4.5 h-4.5 rounded-full bg-[#0d9488] text-white flex items-center justify-center shrink-0">
+                  <Check className="w-3 h-3 stroke-[3]" />
                 </div>
-                <p className="text-[11px] sm:text-xs font-semibold text-[#134e4a] leading-tight">
+                <p className="text-[10.5px] sm:text-[11px] font-semibold text-[#134e4a] leading-tight truncate">
                   Your data is secure and protected as per DPDP Act 2023
                 </p>
               </div>
-              <div className="h-5 w-px bg-[#85dcd1] shrink-0" />
+              <div className="h-4 w-px bg-[#85dcd1] shrink-0" />
               <Link 
                 to="/privacy" 
-                className="text-[11px] sm:text-xs font-bold text-[#0d9488] hover:text-[#0f766e] flex items-center gap-0.5 shrink-0 whitespace-nowrap"
+                className="text-[10.5px] sm:text-[11px] font-bold text-[#0d9488] hover:text-[#0f766e] flex items-center gap-0.5 shrink-0 whitespace-nowrap"
               >
                 <span>Learn More</span>
-                <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                <ChevronRight className="w-3 h-3 stroke-[2.5]" />
               </Link>
             </div>
 
@@ -256,7 +256,7 @@ export const GlobalLoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-[50px] sm:min-h-[54px] rounded-2xl font-bold text-white text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
+              className="w-full min-h-[46px] sm:min-h-[48px] rounded-2xl font-bold text-white text-sm sm:text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
             >
               {loading ? (
                 <>
@@ -275,7 +275,7 @@ export const GlobalLoginPage = () => {
 
         {/* ── STEP 2: OTP VERIFICATION ── */}
         {step === 'otp' && (
-          <form onSubmit={handleVerifyOtp} className="mt-5 space-y-4">
+          <form onSubmit={handleVerifyOtp} className="mt-3.5 space-y-3">
             <div className="flex items-center justify-between pb-1 border-b border-slate-100">
               <button
                 type="button"
@@ -284,7 +284,7 @@ export const GlobalLoginPage = () => {
                   setOtp('');
                   setError('');
                 }}
-                className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 py-1 cursor-pointer min-h-[36px]"
+                className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 py-0.5 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Change Number</span>
@@ -308,7 +308,7 @@ export const GlobalLoginPage = () => {
                   setOtp(val);
                   if (error) setError('');
                 }}
-                className="block w-full text-center tracking-[0.35em] font-mono text-xl sm:text-2xl font-black py-2.5 min-h-[50px] rounded-2xl border border-blue-200 bg-slate-50/50 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
+                className="block w-full text-center tracking-[0.35em] font-mono text-xl sm:text-2xl font-black py-2 min-h-[46px] rounded-2xl border border-blue-200 bg-slate-50/50 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
                 disabled={loading}
                 autoFocus
               />
@@ -318,7 +318,7 @@ export const GlobalLoginPage = () => {
             <button
               type="submit"
               disabled={loading || otp.length !== 6}
-              className="w-full min-h-[50px] sm:min-h-[54px] rounded-2xl font-bold text-white text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
+              className="w-full min-h-[46px] sm:min-h-[48px] rounded-2xl font-bold text-white text-sm sm:text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
             >
               {loading ? (
                 <>
@@ -334,7 +334,7 @@ export const GlobalLoginPage = () => {
             </button>
 
             {/* Resend Cooldown */}
-            <div className="text-center pt-1">
+            <div className="text-center pt-0.5">
               {cooldown > 0 ? (
                 <span className="text-xs font-medium text-slate-400">
                   Resend code in <strong className="text-slate-600 font-mono">{cooldown}s</strong>
@@ -344,7 +344,7 @@ export const GlobalLoginPage = () => {
                   type="button"
                   onClick={handleSendOtp}
                   disabled={loading}
-                  className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline py-1 cursor-pointer min-h-[36px]"
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline py-0.5 cursor-pointer"
                 >
                   Resend Verification Code
                 </button>
@@ -355,15 +355,15 @@ export const GlobalLoginPage = () => {
 
         {/* ── STEP 3: UNREGISTERED PROFILE NOTICE ── */}
         {step === 'no_profile' && (
-          <div className="mt-5 text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center mx-auto">
-              <Phone className="w-6 h-6" />
+          <div className="mt-3.5 text-center space-y-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center mx-auto">
+              <Phone className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-base font-bold text-slate-900">
+              <h4 className="text-sm font-bold text-slate-900">
                 No Health Records Associated
               </h4>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                 Mobile number <span className="font-semibold text-slate-800 font-mono">+91 {noProfileData?.contact}</span> is not registered in our clinical network.
               </p>
             </div>
@@ -375,7 +375,7 @@ export const GlobalLoginPage = () => {
                 setOtp('');
                 setError('');
               }}
-              className="w-full min-h-[46px] rounded-2xl font-bold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+              className="w-full min-h-[42px] rounded-2xl font-bold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
             >
               Try Another Number
             </button>
@@ -383,39 +383,39 @@ export const GlobalLoginPage = () => {
         )}
 
         {/* ── OR DIVIDER ── */}
-        <div className="relative my-4 sm:my-5 flex items-center justify-center">
+        <div className="relative my-3 sm:my-3.5 flex items-center justify-center">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-200" />
           </div>
-          <span className="relative bg-white px-3 text-xs font-bold uppercase text-slate-400">
+          <span className="relative bg-white px-3 text-[10px] font-bold uppercase text-slate-400">
             OR
           </span>
         </div>
 
         {/* ── BOTTOM TRUST INDICATORS ── */}
-        <div className="grid grid-cols-3 items-center text-center gap-1 sm:gap-2">
+        <div className="grid grid-cols-3 items-center text-center gap-1 sm:gap-1.5">
           {/* 1. Secure Access */}
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-            <ShieldCheck className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0284c7] shrink-0" />
-            <span className="text-[11px] font-bold text-slate-700 leading-tight text-left">
+          <div className="flex items-center justify-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-[#0284c7] shrink-0" />
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-tight text-left">
               Secure<br />Access
             </span>
           </div>
 
           {/* 2. Your Privacy */}
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2 border-x border-slate-200 px-1">
-            <Lock className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0284c7] shrink-0" />
-            <span className="text-[11px] font-bold text-slate-700 leading-tight text-left">
+          <div className="flex items-center justify-center gap-1.5 border-x border-slate-200 px-1">
+            <Lock className="w-4 h-4 text-[#0284c7] shrink-0" />
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-tight text-left">
               Your Privacy<br />Our Commitment
             </span>
           </div>
 
           {/* 3. Better Care Together */}
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-            <div className="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-md bg-gradient-to-b from-[#14b8a6] to-[#0284c7] text-white flex items-center justify-center shrink-0 shadow-2xs font-bold">
-              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+          <div className="flex items-center justify-center gap-1.5">
+            <div className="w-4 h-4 rounded-md bg-gradient-to-b from-[#14b8a6] to-[#0284c7] text-white flex items-center justify-center shrink-0 shadow-2xs font-bold">
+              <Plus className="w-3 h-3 stroke-[3]" />
             </div>
-            <span className="text-[11px] font-bold text-slate-700 leading-tight text-left">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-tight text-left">
               Better Care<br />Together
             </span>
           </div>
@@ -425,7 +425,7 @@ export const GlobalLoginPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#f0f6fc] flex flex-col justify-between relative overflow-x-hidden font-sans select-none antialiased">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden bg-[#f0f6fc] flex flex-col justify-between relative overflow-x-hidden font-sans select-none antialiased">
       {/* ── MOBILE TOP HERO BACKGROUND (< lg) ── */}
       <div 
         className="w-full absolute top-0 left-0 right-0 pointer-events-none z-0 overflow-hidden flex justify-center lg:hidden"
@@ -456,26 +456,26 @@ export const GlobalLoginPage = () => {
       </div>
 
       {/* ── DESKTOP TOP HEADER BAR (>= lg) ── */}
-      <header className="hidden lg:flex items-center justify-between w-full max-w-7xl mx-auto px-8 xl:px-12 pt-6 xl:pt-8 relative z-10">
+      <header className="hidden lg:flex items-center justify-between w-full max-w-7xl mx-auto px-8 xl:px-12 pt-2.5 xl:pt-3.5 relative z-10 shrink-0">
         {/* Left: Brand Logo & Title */}
         <div className="inline-flex items-center gap-3">
           <img 
             src={curoxaIconLogo} 
             alt="QUROXA" 
-            className="w-11 h-11 object-contain drop-shadow-xs" 
+            className="w-10 h-10 object-contain drop-shadow-xs" 
           />
           <div className="text-left">
-            <span className="text-2xl font-black text-[#071a36] tracking-tight leading-none block">
+            <span className="text-xl xl:text-2xl font-black text-[#071a36] tracking-tight leading-none block">
               QUROXA
             </span>
-            <span className="text-xs font-semibold text-slate-500 tracking-wide block mt-0.5">
+            <span className="text-[11px] xl:text-xs font-semibold text-slate-500 tracking-wide block mt-0.5">
               Health Management
             </span>
           </div>
         </div>
 
         {/* Right: Tagline */}
-        <div className="flex items-center gap-2.5 text-slate-600 text-xs xl:text-sm font-semibold tracking-wide">
+        <div className="flex items-center gap-2.5 text-slate-600 text-xs font-semibold tracking-wide">
           <span className="h-4 w-px bg-slate-300" />
           <span>Better Care. Healthier Tomorrow.</span>
         </div>
@@ -513,61 +513,61 @@ export const GlobalLoginPage = () => {
         </div>
 
         {/* Mobile Login Card */}
-        <div className="w-full mt-8 sm:mt-9">
+        <div className="w-full mt-6 sm:mt-7">
           {renderLoginCard()}
         </div>
       </main>
 
       {/* ── DESKTOP MAIN CONTENT (>= lg: SPLIT 2-COLUMN LAYOUT MATCHING DESKTOP REFERENCE) ── */}
-      <main className="hidden lg:grid grid-cols-12 gap-8 xl:gap-14 items-center w-full max-w-7xl mx-auto px-8 xl:px-12 flex-1 relative z-10 py-6 my-auto">
+      <main className="hidden lg:grid grid-cols-12 gap-8 xl:gap-12 items-center w-full max-w-7xl mx-auto px-8 xl:px-12 flex-1 relative z-10 py-1.5 xl:py-2.5 my-auto">
         {/* Left Column: Hero Headline, Subtitle, and 4 Feature Badges */}
         <div className="col-span-7 xl:col-span-7 flex flex-col justify-center">
-          <h1 className="text-4xl xl:text-5xl font-black text-[#071a36] tracking-tight leading-[1.12]">
+          <h1 className="text-3xl xl:text-4xl font-black text-[#071a36] tracking-tight leading-[1.14]">
             Your Health.<br />Our Priority.
           </h1>
 
-          <p className="text-sm xl:text-base text-slate-600 font-medium max-w-[440px] mt-4 leading-relaxed">
+          <p className="text-xs xl:text-sm text-slate-600 font-medium max-w-[420px] mt-3 leading-relaxed">
             Access your medical records, appointments and more — anytime, anywhere.
           </p>
 
           {/* 4 Feature Quick Badges matching exact desktop reference */}
-          <div className="flex items-center gap-4 xl:gap-5 mt-8">
+          <div className="flex items-center gap-3.5 xl:gap-4 mt-6">
             {/* 1. Book Appointments */}
-            <div className="flex flex-col items-center gap-2 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-white/95 backdrop-blur-xs border border-blue-100/90 shadow-sm flex items-center justify-center text-[#0284c7]">
-                <Calendar className="w-5 h-5 text-[#0284c7]" />
+            <div className="flex flex-col items-center gap-1.5 text-center">
+              <div className="w-10 h-10 xl:w-11 xl:h-11 rounded-2xl bg-white/95 backdrop-blur-xs border border-blue-100/90 shadow-2xs flex items-center justify-center text-[#0284c7]">
+                <Calendar className="w-4.5 h-4.5 text-[#0284c7]" />
               </div>
-              <span className="text-[11px] font-bold text-slate-700 leading-tight">
+              <span className="text-[10px] xl:text-[11px] font-bold text-slate-700 leading-tight">
                 Book<br />Appointments
               </span>
             </div>
 
             {/* 2. View Medical Records */}
-            <div className="flex flex-col items-center gap-2 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-white/95 backdrop-blur-xs border border-blue-100/90 shadow-sm flex items-center justify-center text-[#0284c7]">
-                <FileText className="w-5 h-5 text-[#0284c7]" />
+            <div className="flex flex-col items-center gap-1.5 text-center">
+              <div className="w-10 h-10 xl:w-11 xl:h-11 rounded-2xl bg-white/95 backdrop-blur-xs border border-blue-100/90 shadow-2xs flex items-center justify-center text-[#0284c7]">
+                <FileText className="w-4.5 h-4.5 text-[#0284c7]" />
               </div>
-              <span className="text-[11px] font-bold text-slate-700 leading-tight">
+              <span className="text-[10px] xl:text-[11px] font-bold text-slate-700 leading-tight">
                 View<br />Medical Records
               </span>
             </div>
 
             {/* 3. Secure & Protected */}
-            <div className="flex flex-col items-center gap-2 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-white/95 backdrop-blur-xs border border-blue-100/90 shadow-sm flex items-center justify-center text-[#0284c7]">
-                <ShieldCheck className="w-5 h-5 text-[#0284c7]" />
+            <div className="flex flex-col items-center gap-1.5 text-center">
+              <div className="w-10 h-10 xl:w-11 xl:h-11 rounded-2xl bg-white/95 backdrop-blur-xs border border-blue-100/90 shadow-2xs flex items-center justify-center text-[#0284c7]">
+                <ShieldCheck className="w-4.5 h-4.5 text-[#0284c7]" />
               </div>
-              <span className="text-[11px] font-bold text-slate-700 leading-tight">
+              <span className="text-[10px] xl:text-[11px] font-bold text-slate-700 leading-tight">
                 Secure &amp;<br />Protected
               </span>
             </div>
 
             {/* 4. Access Anytime */}
-            <div className="flex flex-col items-center gap-2 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-white/95 backdrop-blur-xs border border-blue-100/90 shadow-sm flex items-center justify-center text-[#0284c7]">
-                <Clock className="w-5 h-5 text-[#0284c7]" />
+            <div className="flex flex-col items-center gap-1.5 text-center">
+              <div className="w-10 h-10 xl:w-11 xl:h-11 rounded-2xl bg-white/95 backdrop-blur-xs border border-blue-100/90 shadow-2xs flex items-center justify-center text-[#0284c7]">
+                <Clock className="w-4.5 h-4.5 text-[#0284c7]" />
               </div>
-              <span className="text-[11px] font-bold text-slate-700 leading-tight">
+              <span className="text-[10px] xl:text-[11px] font-bold text-slate-700 leading-tight">
                 Access<br />Anytime
               </span>
             </div>
@@ -580,14 +580,8 @@ export const GlobalLoginPage = () => {
         </div>
       </main>
 
-      {/* ── FOOTER WAVES & BRANDED NAVY BASE (Mobile Only) ── */}
-      <footer className="w-full relative z-0 mt-auto leading-none overflow-hidden shrink-0 lg:hidden">
-        <img 
-          src={footerWaves} 
-          alt="Powered by QUROXA" 
-          className="w-full h-14 sm:h-18 md:h-22 object-cover object-bottom block"
-        />
-      </footer>
+      {/* ── CURVY FOOTER WAVES & BRANDED NAVY BASE (Desktop & Mobile) ── */}
+      <QuroxaCurvyFooter className="block" />
     </div>
   );
 };

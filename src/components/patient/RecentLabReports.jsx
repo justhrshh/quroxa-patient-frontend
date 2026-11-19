@@ -26,13 +26,20 @@ export const RecentLabReports = ({
       <CardContent className="flex-1 flex flex-col justify-between">
         {displayLabs.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-6 sm:py-8 my-auto">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 border border-slate-200/60 flex items-center justify-center mb-3">
-              <Activity className="w-5 h-5" />
+            <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 border border-teal-200/80 flex items-center justify-center mb-3 shadow-2xs">
+              <Activity className="w-6 h-6 text-teal-600" />
             </div>
-            <h4 className="text-sm font-bold text-slate-800">No Diagnostic Reports</h4>
-            <p className="text-xs text-slate-500 mt-1 max-w-[220px]">
-              Ordered laboratory tests and clinical pathology findings will appear here.
+            <h4 className="text-sm font-black text-slate-800">No Diagnostic Reports</h4>
+            <p className="text-xs text-slate-500 mt-1 max-w-[240px] leading-relaxed">
+              Ordered laboratory tests and clinical pathology findings will synchronize here.
             </p>
+            <button
+              type="button"
+              onClick={() => onNavigateTab && onNavigateTab('labs')}
+              className="mt-4 px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold text-xs border border-teal-200 flex items-center gap-1.5 transition shadow-2xs"
+            >
+              <span>Explore Lab Directory</span>
+            </button>
           </div>
         ) : (
           <div className="space-y-2.5">

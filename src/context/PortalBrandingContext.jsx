@@ -43,19 +43,20 @@ const isUnresolvablePlaceholder = (url) => {
 export const HospitalBrandLogo = ({
   hospital,
   size = 44,
-  borderRadius = 12,
-  fontSize = 16,
+  borderRadius = 14,
+  fontSize = 18,
   className = '',
   style = {}
 }) => {
   const [imgError, setImgError] = useState(false);
 
-  const rawLogo = hospital?.logo || '';
+  // Check all possible logo fields from Superadmin: logo, originalLogoUrl, logoUrl
+  const rawLogo = hospital?.logo || hospital?.originalLogoUrl || hospital?.logoUrl || '';
   const cleanLogo = typeof rawLogo === 'string' ? rawLogo.trim() : '';
 
   useEffect(() => {
     setImgError(false);
-  }, [cleanLogo, hospital?.hospitalId]);
+  }, [cleanLogo, hospital?.hospitalId, hospital?.tenantId]);
 
   if (!hospital) return null;
 
@@ -65,6 +66,7 @@ export const HospitalBrandLogo = ({
   const isImageFormat = Boolean(
     cleanLogo &&
     cleanLogo !== 'H' &&
+    cleanLogo.length > 4 &&
     !isInvalidPlaceholder &&
     (
       cleanLogo.startsWith('data:image/') ||
@@ -79,7 +81,14 @@ export const HospitalBrandLogo = ({
     )
   );
 
-  const imageSrc = cleanLogo.startsWith('/9j/') ? `data:image/jpeg;base64,${cleanLogo}`
+  // Resolve relative backend upload paths with API host if needed
+  const apiBase = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL)
+    ? String(import.meta.env.VITE_API_URL).replace(/\/api\/?$/, '')
+    : '';
+
+  const imageSrc = cleanLogo.startsWith('/uploads/') && apiBase
+    ? `${apiBase}${cleanLogo}`
+    : cleanLogo.startsWith('/9j/') ? `data:image/jpeg;base64,${cleanLogo}`
     : cleanLogo.startsWith('iVBOR') ? `data:image/png;base64,${cleanLogo}`
     : cleanLogo.startsWith('R0lGOD') ? `data:image/gif;base64,${cleanLogo}`
     : cleanLogo.startsWith('PHN2Zw') ? `data:image/svg+xml;base64,${cleanLogo}`
@@ -87,55 +96,45 @@ export const HospitalBrandLogo = ({
 
   const isImageUrl = !imgError && isImageFormat;
 
-  const monogram = (cleanLogo && cleanLogo !== 'H' && cleanLogo.length <= 4 && !isImageUrl)
-    ? cleanLogo.toUpperCase()
-    : (hospital.name ? hospital.name.slice(0, 2).toUpperCase() : 'HP');
+  // Fallback: strictly the First Letter of the hospital name as requested by user
+  const hospitalName = hospital.name || hospital.hospitalName || 'Hospital';
+  const firstLetter = hospitalName.trim().charAt(0).toUpperCase() || 'H';
 
   if (isImageUrl) {
     return (
-      <img
-        src={imageSrc}
-        alt={hospital.name || 'Hospital Logo'}
-        onError={() => setImgError(true)}
-        className={className}
+      <div 
+        className={`bg-white rounded-2xl flex items-center justify-center p-1 border border-slate-100 shadow-2xs overflow-hidden shrink-0 ${className}`}
         style={{
-          maxHeight: `${size}px`,
-          maxWidth: `${Math.round(size * 3.5)}px`,
-          width: 'auto',
-          height: 'auto',
-          objectFit: 'contain',
-          background: 'transparent',
-          flexShrink: 0,
-          display: 'inline-block',
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius: `${borderRadius}px`,
           ...style
         }}
-      />
+      >
+        <img
+          src={imageSrc}
+          alt={hospitalName}
+          onError={() => setImgError(true)}
+          className="w-full h-full object-contain"
+        />
+      </div>
     );
   }
 
   return (
     <div
-      className={className}
+      className={`shrink-0 select-none font-black flex items-center justify-center text-white border border-white/60 shadow-md ${className}`}
       style={{
         width: `${size}px`,
         height: `${size}px`,
         borderRadius: `${borderRadius}px`,
-        background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 55%, #06B6D4 100%)',
-        color: '#FFFFFF',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontWeight: 900,
+        background: 'linear-gradient(135deg, #071938 0%, #1d4ed8 60%, #06b6d4 100%)',
         fontSize: `${fontSize}px`,
-        letterSpacing: '0.03em',
-        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.22)',
-        border: '1.5px solid rgba(255, 255, 255, 0.8)',
-        flexShrink: 0,
-        userSelect: 'none',
+        boxShadow: '0 4px 14px rgba(29, 78, 216, 0.28)',
         ...style
       }}
     >
-      {monogram}
+      <span>{firstLetter}</span>
     </div>
   );
 };
@@ -175,7 +174,7 @@ export const PortalBrandingProvider = ({ children }) => {
         setError('suspended');
         setHospital(null);
         try {
-          sessionStorage.removeItem(`curoxa_portal_${targetSlug}`);
+          sessionStorage.removeItem(`quroxa_portal_${targetSlug}`);
         } catch (e) {}
         return;
       }
@@ -185,7 +184,7 @@ export const PortalBrandingProvider = ({ children }) => {
 
       // Cache verified hospital branding and update local tenant identifier
       try {
-        sessionStorage.setItem(`curoxa_portal_${targetSlug}`, JSON.stringify(data));
+        sessionStorage.setItem(`quroxa_portal_${targetSlug}`, JSON.stringify(data));
         if (data.code) {
           localStorage.setItem('tenantId', data.code.toLowerCase());
         } else if (data.hospitalId) {
@@ -201,7 +200,7 @@ export const PortalBrandingProvider = ({ children }) => {
       }
       setHospital(null);
       try {
-        sessionStorage.removeItem(`curoxa_portal_${targetSlug}`);
+        sessionStorage.removeItem(`quroxa_portal_${targetSlug}`);
       } catch (e) {}
     } finally {
       setLoading(false);
