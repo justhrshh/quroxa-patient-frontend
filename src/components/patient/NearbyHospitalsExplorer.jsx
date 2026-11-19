@@ -555,6 +555,21 @@ export const NearbyHospitalsExplorer = ({
           )}
         </div>
       )}
+
+      {/* OpenStreetMap Attribution (Required by OSM Nominatim usage policy) */}
+      <div className="pt-4 pb-2 text-center">
+        <p className="text-[11px] text-slate-400 font-medium">
+          Map data and geolocation powered by{' '}
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-500 hover:text-slate-700 underline font-semibold transition"
+          >
+            OpenStreetMap contributors
+          </a>
+        </p>
+      </div>
     </div>
   );
 };
