@@ -209,19 +209,14 @@ export const GlobalLoginPage = () => {
 
         {/* ── CENTRAL LOGIN CARD ── */}
         <div className="w-full relative mt-8 sm:mt-9">
-          {/* Overhanging Heart-Pulse Brand Badge matching reference */}
+          {/* Overhanging Official CUROXA Brand Badge */}
           <div className="absolute -top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-20">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#071a36] shadow-xl flex items-center justify-center border-[3px] border-white">
-              <svg 
-                className="w-7 h-7 sm:w-8 sm:h-8 text-white fill-none stroke-current" 
-                viewBox="0 0 24 24" 
-                strokeWidth="2.2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                <path d="M3.5 12h5l1.5-3 2 6 2-4h6.5" />
-              </svg>
+              <img 
+                src={curoxaIconLogo} 
+                alt="CUROXA Brand Icon" 
+                className="w-8 h-8 sm:w-9.5 sm:h-9.5 object-contain" 
+              />
             </div>
           </div>
 
