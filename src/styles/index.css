@@ -104,29 +104,3 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.02em;
 }
 
-/* Compact mobile viewport adaptations for short screens (e.g. 568px - 640px height) */
-@media (max-height: 640px) {
-  .short-screen-compact {
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.25rem !important;
-  }
-  .short-screen-hero-mb {
-    margin-bottom: 0.4rem !important;
-  }
-  .short-screen-card-mt {
-    margin-top: 1.1rem !important;
-  }
-  .short-screen-card-p {
-    padding-top: 1.65rem !important;
-    padding-bottom: 0.85rem !important;
-    padding-left: 0.85rem !important;
-    padding-right: 0.85rem !important;
-  }
-  .short-screen-divider-my {
-    margin-top: 0.45rem !important;
-    margin-bottom: 0.45rem !important;
-  }
-  .short-screen-footer-h {
-    height: 2.5rem !important;
-  }
-}

@@ -161,78 +161,85 @@ export const GlobalLoginPage = () => {
         className="w-full absolute top-0 left-0 right-0 pointer-events-none z-0 overflow-hidden flex justify-center"
         aria-hidden="true"
       >
-        <div className="relative w-full max-w-[520px] sm:max-w-xl md:max-w-2xl h-[200px] sm:h-[230px] md:h-[260px] shrink-0">
+        <div className="relative w-full max-w-[540px] sm:max-w-xl md:max-w-2xl h-[330px] sm:h-[360px] md:h-[390px] shrink-0">
           <img 
             src={heroCleanTop} 
             alt="Healthcare Atmosphere" 
             className="w-full h-full object-cover object-top opacity-95"
           />
-          {/* Balanced gradient overlay: preserves readability of hero text while keeping doctor hands and hospital building clearly recognizable */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#f0f6fc]/30 to-[#f0f6fc]" />
-          <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#f0f6fc] to-transparent" />
+          {/* Subtle bottom fade into page background right behind top of card */}
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#f0f6fc] to-transparent" />
         </div>
       </div>
 
-      {/* ── MAIN CONTENT CONTAINER (Calibrated to fit mobile viewports without scrolling) ── */}
-      <main className="relative z-10 w-full max-w-[440px] sm:max-w-[480px] mx-auto px-4 sm:px-6 pt-3 sm:pt-6 pb-2 sm:pb-4 flex-1 flex flex-col items-center justify-between sm:justify-start short-screen-compact">
+      {/* ── MAIN CONTENT CONTAINER (Centered cohesive unit matching exact reference) ── */}
+      <main className="relative z-10 w-full max-w-[460px] sm:max-w-[480px] mx-auto px-4 sm:px-6 pt-5 sm:pt-7 pb-4 flex-1 flex flex-col items-center justify-center">
         {/* ── TOP HERO BRANDING ── */}
-        <div className="w-full text-center mb-3 sm:mb-5 short-screen-hero-mb">
+        <div className="w-full text-center mb-4 sm:mb-5">
           {/* QUROXA Logo & Subtitle */}
-          <div className="inline-flex items-center justify-center gap-2.5 mb-1 sm:mb-1.5">
+          <div className="inline-flex items-center justify-center gap-2.5 mb-1.5">
             <img 
               src={curoxaIconLogo} 
               alt="QUROXA" 
-              className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-xs" 
+              className="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow-xs" 
             />
             <div className="text-left">
-              <span className="text-lg sm:text-2xl font-black text-[#071a36] tracking-tight leading-none block">
+              <span className="text-xl sm:text-2xl font-black text-[#071a36] tracking-tight leading-none block">
                 QUROXA
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold text-slate-500 tracking-wide block mt-0.5">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 tracking-wide block mt-0.5">
                 Health Management
               </span>
             </div>
           </div>
 
           {/* Large Headline */}
-          <h1 className="text-xl sm:text-2xl md:text-[28px] font-black text-[#071a36] tracking-tight text-center mt-1 sm:mt-1.5 leading-tight">
+          <h1 className="text-2xl sm:text-[28px] font-black text-[#071a36] tracking-tight text-center mt-1.5 leading-tight">
             Your Health. Our Priority.
           </h1>
 
           {/* Supporting Text */}
-          <p className="text-[11px] sm:text-xs md:text-[13px] text-slate-600 font-medium text-center max-w-[340px] sm:max-w-[380px] mx-auto mt-0.5 sm:mt-1 leading-snug">
+          <p className="text-xs sm:text-[13px] text-slate-600 font-medium text-center max-w-[340px] sm:max-w-[380px] mx-auto mt-1 leading-relaxed">
             Access your medical records, appointments and more — anytime, anywhere.
           </p>
 
           {/* Small Teal Divider */}
-          <div className="w-10 sm:w-12 h-[2px] sm:h-[2.5px] bg-[#14b8a6] rounded-full mx-auto mt-1.5 sm:mt-2" />
+          <div className="w-12 h-[2.5px] bg-[#14b8a6] rounded-full mx-auto mt-2" />
         </div>
 
         {/* ── CENTRAL LOGIN CARD ── */}
-        <div className="w-full relative mt-5 sm:mt-7 short-screen-card-mt">
-          {/* Overhanging Original QUROXA Brand Badge */}
-          <div className="absolute -top-6 sm:-top-7 left-1/2 -translate-x-1/2 z-20">
-            <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-[#071a36] shadow-lg flex items-center justify-center border-[3px] border-white">
-              <img 
-                src={curoxaIconLogo} 
-                alt="QUROXA Brand Icon" 
-                className="w-8 h-8 sm:w-9 sm:h-9 object-contain" 
-              />
+        <div className="w-full relative mt-8 sm:mt-9">
+          {/* Overhanging Heart-Pulse Brand Badge matching reference */}
+          <div className="absolute -top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-20">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#071a36] shadow-xl flex items-center justify-center border-[3px] border-white">
+              <svg 
+                className="w-7 h-7 sm:w-8 sm:h-8 text-white fill-none stroke-current" 
+                viewBox="0 0 24 24" 
+                strokeWidth="2.2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                <path d="M3.5 12h5l1.5-3 2 6 2-4h6.5" />
+              </svg>
             </div>
           </div>
 
           {/* White Card Body */}
-          <div className="bg-white rounded-[26px] sm:rounded-[32px] shadow-[0_15px_40px_rgba(15,31,61,0.10)] border border-slate-100/90 px-4 py-4.5 pt-7.5 sm:px-7 sm:py-6 sm:pt-9 short-screen-card-p">
-            {/* Card Titles (Duplicate standalone QUROXA heading removed as instructed) */}
+          <div className="bg-white rounded-[32px] sm:rounded-[36px] shadow-[0_20px_50px_rgba(15,31,61,0.12)] border border-slate-100/90 px-5 py-6 pt-9 sm:px-8 sm:py-7 sm:pt-10">
+            {/* Card Titles exactly matching reference */}
             <div className="text-center">
-              <p className="text-[10px] sm:text-xs font-bold text-[#1d4ed8] tracking-widest uppercase">
+              <h2 className="text-xl sm:text-2xl font-black text-[#071a36] tracking-wider uppercase">
+                QUROXA
+              </h2>
+              <p className="text-xs sm:text-[13px] font-bold text-[#1d4ed8] tracking-widest uppercase mt-1">
                 GLOBAL PATIENT PORTAL
               </p>
 
-              <h2 className="text-lg sm:text-xl md:text-2xl font-black text-[#071a36] tracking-tight mt-1 sm:mt-1.5">
+              <h3 className="text-xl sm:text-2xl font-black text-[#071a36] tracking-tight mt-3 sm:mt-4">
                 {step === 'otp' ? 'Verification Code' : 'Welcome back!'}
-              </h2>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium max-w-[320px] mx-auto mt-0.5 sm:mt-1 leading-normal">
+              </h3>
+              <p className="text-xs sm:text-[13px] text-slate-500 font-medium max-w-[320px] mx-auto mt-1 leading-relaxed">
                 {step === 'otp'
                   ? `Enter the 6-digit code sent to ${maskedTarget}`
                   : 'Sign in with your registered mobile number to access your healthcare information.'}
@@ -241,7 +248,7 @@ export const GlobalLoginPage = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mt-3 p-2.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-red-700 text-xs animate-fadeIn">
+              <div className="mt-3.5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs animate-fadeIn">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
                 <span className="flex-1 font-medium leading-snug">{error}</span>
               </div>
@@ -249,15 +256,15 @@ export const GlobalLoginPage = () => {
 
             {/* ── STEP 1: MOBILE ENTRY ── */}
             {step === 'phone' && (
-              <form onSubmit={handleSendOtp} className="mt-3.5 sm:mt-4 space-y-2.5 sm:space-y-3">
+              <form onSubmit={handleSendOtp} className="mt-5 space-y-3.5 sm:space-y-4">
                 {/* Mobile Number Input Container */}
-                <div className="rounded-2xl border border-blue-200/90 bg-white hover:border-blue-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/20 transition min-h-[46px] sm:min-h-[50px] px-3 sm:px-4 flex items-center gap-2.5 shadow-2xs">
+                <div className="rounded-2xl border border-blue-200/90 bg-white hover:border-blue-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/20 transition min-h-[50px] sm:min-h-[54px] px-3.5 sm:px-4 flex items-center gap-3 shadow-2xs">
                   {/* Dark navy circular phone icon */}
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#071a36] text-white flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-[#071a36] text-white flex items-center justify-center shrink-0">
                     <Phone className="w-3.5 h-3.5 fill-white text-white" />
                   </div>
                   {/* Subtle +91 indicator */}
-                  <span className="text-xs sm:text-sm font-bold text-slate-500 select-none border-r border-slate-200 pr-2">
+                  <span className="text-xs sm:text-sm font-bold text-slate-500 select-none border-r border-slate-200 pr-2.5">
                     +91
                   </span>
                   {/* Input field */}
@@ -273,29 +280,29 @@ export const GlobalLoginPage = () => {
                       setMobile(val);
                       if (error) setError('');
                     }}
-                    className="w-full text-xs sm:text-sm md:text-base font-semibold text-slate-800 placeholder:text-slate-400 bg-transparent outline-none"
+                    className="w-full text-sm sm:text-base font-semibold text-slate-800 placeholder:text-slate-400 bg-transparent outline-none"
                     disabled={loading}
                     autoFocus
                   />
                 </div>
 
                 {/* Privacy Information Strip (DPDP Act 2023) */}
-                <div className="rounded-xl sm:rounded-2xl bg-[#e8f7f5] border border-[#bbf0e7] py-2 px-2.5 sm:py-2.5 sm:px-3.5 flex items-center justify-between gap-2 transition">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full bg-[#0d9488] text-white flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3]" />
+                <div className="rounded-2xl bg-[#e8f7f5] border border-[#bbf0e7] py-2.5 px-3 sm:py-3 sm:px-4 flex items-center justify-between gap-2.5 transition">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-5 h-5 rounded-full bg-[#0d9488] text-white flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
                     </div>
-                    <p className="text-[10px] sm:text-[11px] font-semibold text-[#134e4a] leading-tight">
+                    <p className="text-[11px] sm:text-xs font-semibold text-[#134e4a] leading-tight">
                       Your data is secure and protected as per DPDP Act 2023
                     </p>
                   </div>
-                  <div className="h-4 sm:h-5 w-px bg-[#85dcd1] shrink-0" />
+                  <div className="h-5 w-px bg-[#85dcd1] shrink-0" />
                   <Link 
                     to="/privacy" 
-                    className="text-[10px] sm:text-[11px] font-bold text-[#0d9488] hover:text-[#0f766e] flex items-center gap-0.5 shrink-0 whitespace-nowrap py-1"
+                    className="text-[11px] sm:text-xs font-bold text-[#0d9488] hover:text-[#0f766e] flex items-center gap-0.5 shrink-0 whitespace-nowrap"
                   >
                     <span>Learn More</span>
-                    <ChevronRight className="w-3 h-3 stroke-[2.5]" />
+                    <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
                   </Link>
                 </div>
 
@@ -303,7 +310,7 @@ export const GlobalLoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full min-h-[46px] sm:min-h-[50px] rounded-2xl font-bold text-white text-sm sm:text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
+                  className="w-full min-h-[50px] sm:min-h-[54px] rounded-2xl font-bold text-white text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -322,7 +329,7 @@ export const GlobalLoginPage = () => {
 
             {/* ── STEP 2: OTP VERIFICATION ── */}
             {step === 'otp' && (
-              <form onSubmit={handleVerifyOtp} className="mt-3.5 sm:mt-4 space-y-2.5 sm:space-y-3">
+              <form onSubmit={handleVerifyOtp} className="mt-5 space-y-4">
                 <div className="flex items-center justify-between pb-1 border-b border-slate-100">
                   <button
                     type="button"
@@ -355,7 +362,7 @@ export const GlobalLoginPage = () => {
                       setOtp(val);
                       if (error) setError('');
                     }}
-                    className="block w-full text-center tracking-[0.35em] font-mono text-xl sm:text-2xl font-black py-2.5 min-h-[46px] rounded-2xl border border-blue-200 bg-slate-50/50 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
+                    className="block w-full text-center tracking-[0.35em] font-mono text-xl sm:text-2xl font-black py-2.5 min-h-[50px] rounded-2xl border border-blue-200 bg-slate-50/50 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
                     disabled={loading}
                     autoFocus
                   />
@@ -365,7 +372,7 @@ export const GlobalLoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading || otp.length !== 6}
-                  className="w-full min-h-[46px] sm:min-h-[50px] rounded-2xl font-bold text-white text-sm sm:text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
+                  className="w-full min-h-[50px] sm:min-h-[54px] rounded-2xl font-bold text-white text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -381,7 +388,7 @@ export const GlobalLoginPage = () => {
                 </button>
 
                 {/* Resend Cooldown */}
-                <div className="text-center pt-0.5">
+                <div className="text-center pt-1">
                   {cooldown > 0 ? (
                     <span className="text-xs font-medium text-slate-400">
                       Resend code in <strong className="text-slate-600 font-mono">{cooldown}s</strong>
@@ -391,7 +398,7 @@ export const GlobalLoginPage = () => {
                       type="button"
                       onClick={handleSendOtp}
                       disabled={loading}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline py-1.5 cursor-pointer min-h-[36px]"
+                      className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline py-1 cursor-pointer min-h-[36px]"
                     >
                       Resend Verification Code
                     </button>
@@ -402,12 +409,12 @@ export const GlobalLoginPage = () => {
 
             {/* ── STEP 3: UNREGISTERED PROFILE NOTICE ── */}
             {step === 'no_profile' && (
-              <div className="mt-4 text-center space-y-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center mx-auto">
-                  <Phone className="w-5 h-5" />
+              <div className="mt-5 text-center space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center mx-auto">
+                  <Phone className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                  <h4 className="text-base font-bold text-slate-900">
                     No Health Records Associated
                   </h4>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">
@@ -422,7 +429,7 @@ export const GlobalLoginPage = () => {
                     setOtp('');
                     setError('');
                   }}
-                  className="w-full min-h-[44px] rounded-2xl font-bold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+                  className="w-full min-h-[46px] rounded-2xl font-bold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
                 >
                   Try Another Number
                 </button>
@@ -430,11 +437,11 @@ export const GlobalLoginPage = () => {
             )}
 
             {/* ── OR DIVIDER ── */}
-            <div className="relative my-3 sm:my-4 flex items-center justify-center short-screen-divider-my">
+            <div className="relative my-4 sm:my-5 flex items-center justify-center">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200" />
               </div>
-              <span className="relative bg-white px-2.5 text-[10px] sm:text-xs font-bold uppercase text-slate-400">
+              <span className="relative bg-white px-3 text-xs font-bold uppercase text-slate-400">
                 OR
               </span>
             </div>
@@ -442,27 +449,27 @@ export const GlobalLoginPage = () => {
             {/* ── BOTTOM TRUST INDICATORS ── */}
             <div className="grid grid-cols-3 items-center text-center gap-1 sm:gap-2">
               {/* 1. Secure Access */}
-              <div className="flex items-center justify-center gap-1 sm:gap-1.5">
-                <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#0284c7] shrink-0" />
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-tight text-left">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                <ShieldCheck className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0284c7] shrink-0" />
+                <span className="text-[11px] font-bold text-slate-700 leading-tight text-left">
                   Secure<br />Access
                 </span>
               </div>
 
               {/* 2. Your Privacy */}
-              <div className="flex items-center justify-center gap-1 sm:gap-1.5 border-x border-slate-200 px-0.5">
-                <Lock className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#0284c7] shrink-0" />
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-tight text-left">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 border-x border-slate-200 px-1">
+                <Lock className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0284c7] shrink-0" />
+                <span className="text-[11px] font-bold text-slate-700 leading-tight text-left">
                   Your Privacy<br />Our Commitment
                 </span>
               </div>
 
               {/* 3. Better Care Together */}
-              <div className="flex items-center justify-center gap-1 sm:gap-1.5">
-                <div className="w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-md bg-gradient-to-b from-[#14b8a6] to-[#0284c7] text-white flex items-center justify-center shrink-0 shadow-2xs font-bold">
-                  <Plus className="w-3 h-3 stroke-[3]" />
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                <div className="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-md bg-gradient-to-b from-[#14b8a6] to-[#0284c7] text-white flex items-center justify-center shrink-0 shadow-2xs font-bold">
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-tight text-left">
+                <span className="text-[11px] font-bold text-slate-700 leading-tight text-left">
                   Better Care<br />Together
                 </span>
               </div>
@@ -472,11 +479,11 @@ export const GlobalLoginPage = () => {
       </main>
 
       {/* ── FOOTER WAVES & BRANDED NAVY BASE ── */}
-      <footer className="w-full relative z-0 mt-1 sm:mt-auto leading-none overflow-hidden shrink-0">
+      <footer className="w-full relative z-0 mt-auto leading-none overflow-hidden shrink-0">
         <img 
           src={footerWaves} 
           alt="Powered by QUROXA" 
-          className="w-full h-12 sm:h-16 md:h-20 object-cover object-bottom block short-screen-footer-h"
+          className="w-full h-16 sm:h-20 md:h-24 object-cover object-bottom block"
         />
       </footer>
     </div>
