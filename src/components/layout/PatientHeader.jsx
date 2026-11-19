@@ -6,9 +6,9 @@ import {
   LogOut, 
   ShieldCheck, 
   ChevronRight,
-  Menu,
-  HeartPulse
+  Menu
 } from 'lucide-react';
+import curoxaIconLogo from '../../assets/curoxa_icon_logo.png';
 import { useAuth } from '../../context/AuthContext';
 import { usePortalBranding, HospitalBrandLogo } from '../../context/PortalBrandingContext';
 
@@ -49,8 +49,12 @@ export const PatientHeader = () => {
             {hospital ? (
               <HospitalBrandLogo hospital={hospital} size={38} borderRadius={10} />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-slate-900 text-blue-400 border border-slate-800 flex items-center justify-center shadow-xs shrink-0">
-                <HeartPulse className="w-5 h-5 text-blue-400" />
+              <div className="w-10 h-10 rounded-xl bg-[#071a36] border border-blue-900/30 flex items-center justify-center shadow-xs shrink-0 p-1.5">
+                <img 
+                  src={curoxaIconLogo} 
+                  alt="QUROXA" 
+                  className="w-full h-full object-contain" 
+                />
               </div>
             )}
             <div className="min-w-0">

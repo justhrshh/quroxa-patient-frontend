@@ -5,8 +5,8 @@ import PatientMobileNav from './PatientMobileNav';
 
 export const PatientLayout = () => {
   const location = useLocation();
-  // Is this the global login or standalone entry route?
-  const isAuthRoute = location.pathname === '/' || location.pathname === '/login';
+  // Is this an auth entry route (standalone full-screen design)?
+  const isAuthRoute = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/select-profile';
 
   if (isAuthRoute) {
     return <Outlet />;
