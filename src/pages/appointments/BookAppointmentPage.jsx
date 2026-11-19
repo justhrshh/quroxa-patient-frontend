@@ -161,7 +161,7 @@ export const BookAppointmentPage = () => {
           <CardHeader title="1. Select Specialist" subtitle="Choose doctor and department" />
           <CardContent className="space-y-3">
             {loadingDoctors ? (
-              <div className="py-4 text-center text-xs text-slate-400">Loading hospital specialists...</div>
+              <div className="py-4 text-center text-xs text-slate-400">Loading clinic specialists...</div>
             ) : doctors.length === 0 ? (
               <div className="py-4 text-center text-xs text-slate-500">No doctors currently available for booking.</div>
             ) : (

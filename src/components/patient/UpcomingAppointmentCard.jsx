@@ -19,7 +19,7 @@ export const UpcomingAppointmentCard = ({
           </div>
           <h4 className="text-sm font-black text-slate-800">No Upcoming Appointments</h4>
           <p className="text-xs text-slate-500 mt-1 max-w-[240px] leading-relaxed">
-            Book an in-person or OPD consultation with your affiliated hospital doctors.
+            Book an in-person or OPD consultation with your affiliated clinic doctors.
           </p>
           <Link
             to={`/${tenantSlug}/appointments/book`}

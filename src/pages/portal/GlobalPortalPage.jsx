@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
@@ -31,7 +31,8 @@ import {
   Clock,
   Sparkles,
   Info,
-  Compass
+  Compass,
+  Phone
 } from 'lucide-react';
 import curoxaIconLogo from '../../assets/curoxa_icon_logo.png';
 import curoxaHero3D from '../../assets/curoxa_hero_3d.webp';
@@ -68,6 +69,14 @@ export const GlobalPortalPage = () => {
   const [enteringTenant, setEnteringTenant] = useState(null);
   const [error, setError] = useState('');
   const [toastMsg, setToastMsg] = useState('');
+
+  // Clinic Discovery Tab in Section 3: 'linked' | 'nearby'
+  const [clinicDiscoveryTab, setClinicDiscoveryTab] = useState('linked');
+  const [nearbyRadius, setNearbyRadius] = useState(10);
+  const [nearbyClinics, setNearbyClinics] = useState([]);
+  const [loadingNearby, setLoadingNearby] = useState(false);
+  const [nearbyError, setNearbyError] = useState('');
+  const [nearbySearchContext, setNearbySearchContext] = useState(null);
 
   // Dropdown & Modals State
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -132,7 +141,7 @@ export const GlobalPortalPage = () => {
         }
       } catch (err) {
         if (isMounted) {
-          const msg = err.response?.data?.error || err.message || 'Failed to load associated hospitals.';
+          const msg = err.response?.data?.error || err.message || 'Failed to load associated clinics.';
           if (err.response?.status === 401 || err.response?.status === 403) {
             globalLogout();
             navigate('/login');
@@ -175,28 +184,78 @@ export const GlobalPortalPage = () => {
     }
   };
 
-  // Connect to hospital clinical session
+  // Fetch nearby discoverable clinics using active patient location preference
+  const fetchNearbyClinics = useCallback(async (radius = nearbyRadius) => {
+    if (!patientLocation) return;
+    setLoadingNearby(true);
+    setNearbyError('');
+    try {
+      const params = {
+        radiusKm: radius
+      };
+      if (patientLocation.type === 'gps' && patientLocation.lat && patientLocation.lng) {
+        params.lat = patientLocation.lat;
+        params.lng = patientLocation.lng;
+      } else if (patientLocation.pincode) {
+        params.pincode = patientLocation.pincode;
+      } else {
+        const storedPin = localStorage.getItem('quroxa_patient_pincode');
+        if (storedPin) params.pincode = storedPin;
+      }
+
+      const res = await authService.getNearbyHospitals(params);
+      if (res && res.success) {
+        setNearbyClinics(res.hospitals || []);
+        setNearbySearchContext(res.searchContext || null);
+      } else {
+        setNearbyClinics([]);
+        setNearbyError('Unable to load nearby clinics at this time.');
+      }
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'Error querying nearby clinics.';
+      setNearbyError(msg);
+      setNearbyClinics([]);
+    } finally {
+      setLoadingNearby(false);
+    }
+  }, [patientLocation, nearbyRadius]);
+
+  // Load nearby clinics when nearby tab is active or location changes (without re-prompting GPS)
+  useEffect(() => {
+    if (clinicDiscoveryTab === 'nearby' && isLocationSetupComplete && patientLocation) {
+      fetchNearbyClinics(nearbyRadius);
+    }
+  }, [clinicDiscoveryTab, patientLocation, nearbyRadius, isLocationSetupComplete, fetchNearbyClinics]);
+
+  // Check if a clinic is already linked to the current patient
+  const isClinicLinked = (clinic) => {
+    const cTenant = (clinic?.tenantId || clinic?.code || '').toLowerCase().trim();
+    return hospitals.some(h => (h?.tenantId || h?.code || '').toLowerCase().trim() === cTenant);
+  };
+
+  // Connect to clinic clinical session
   const handleEnterHospital = async (hospital) => {
-    if (!hospital || !hospital.tenantId) return;
-    setEnteringTenant(hospital.tenantId);
+    const targetTenantId = hospital?.tenantId || hospital?.code;
+    if (!hospital || !targetTenantId) return;
+    setEnteringTenant(targetTenantId);
     setError('');
 
     try {
       const res = await authService.selectGlobalHospital({
-        tenantId: hospital.tenantId,
+        tenantId: targetTenantId,
         patientId: hospital.patientId,
         globalToken
       });
 
       if (res.status === 'success' && res.token && res.user) {
         login(res.token, res.user);
-        navigate(`/${hospital.tenantId}/dashboard`);
+        navigate(`/${targetTenantId}/dashboard`);
       } else {
-        setError('Failed to establish hospital clinical session. Please try again.');
+        setError('Failed to establish clinic session. Please try again.');
         setEnteringTenant(null);
       }
     } catch (err) {
-      const msg = err.response?.data?.error || err.message || 'Unable to connect to this hospital. Please try again.';
+      const msg = err.response?.data?.error || err.message || 'Unable to connect to this clinic. Please try again.';
       setError(msg);
       setEnteringTenant(null);
     }
@@ -316,7 +375,7 @@ export const GlobalPortalPage = () => {
                   : 'text-slate-600 hover:text-blue-600'
               }`}
             >
-              <span>Hospitals</span>
+              <span>Clinics</span>
               {hospitals.length > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-blue-100 text-blue-700">
                   {hospitals.length}
@@ -743,151 +802,458 @@ export const GlobalPortalPage = () => {
             </div>
 
             {/* ════════════════════════════════════════════════════════════
-                3. ASSOCIATED HEALTHCARE PROVIDERS (HOSPITALS LIST)
+                3. CLINICS NEAR YOU (MY LINKED CLINICS & NEARBY CLINICS)
                ════════════════════════════════════════════════════════════ */}
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1">
+            <div className="space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-slate-100">
                 <div>
                   <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-blue-600" />
-                    <span>Associated Healthcare Providers</span>
+                    <span>Clinics Near You</span>
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Select an affiliated hospital or clinic to open your authorized clinical portal:
+                    Discover and access healthcare facilities around your selected location.
                   </p>
                 </div>
-                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/80 w-fit">
-                  {hospitals.length} {hospitals.length === 1 ? 'Hospital' : 'Hospitals'} Linked
-                </span>
+
+                {/* Discovery Tabs: My Linked Clinics vs Nearby Clinics */}
+                <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/80 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setClinicDiscoveryTab('linked')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                      clinicDiscoveryTab === 'linked'
+                        ? 'bg-white text-blue-600 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>My Linked Clinics ({hospitals.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClinicDiscoveryTab('nearby');
+                      if (nearbyClinics.length === 0 && patientLocation) {
+                        fetchNearbyClinics(nearbyRadius);
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                      clinicDiscoveryTab === 'nearby'
+                        ? 'bg-white text-blue-600 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Compass className="w-3.5 h-3.5" />
+                    <span>Nearby Clinics {nearbyClinics.length > 0 ? `(${nearbyClinics.length})` : ''}</span>
+                  </button>
+                </div>
               </div>
 
-              {loading ? (
-                <div className="min-h-[220px] bg-white rounded-3xl border border-slate-200/80 flex flex-col items-center justify-center py-12 text-slate-400 shadow-xs">
-                  <RotateCw className="w-7 h-7 animate-spin text-blue-600 mb-2.5" />
-                  <p className="text-xs font-semibold text-slate-600">Loading verified hospital associations...</p>
-                </div>
-              ) : hospitals.length === 0 ? (
-                <div className="bg-white rounded-3xl border border-slate-200/90 p-8 text-center max-w-md mx-auto my-6 shadow-xs">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center mx-auto mb-3">
-                    <Building2 className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900">No Hospitals Linked Yet</h3>
-                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                    Your profile is active, but not yet linked to an authorized clinical record. Provide your UHID during your next clinic intake.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {hospitals.map((h, idx) => {
-                    const isEntering = enteringTenant === h.tenantId;
-                    // Dynamic accent gradients for hospital banners
-                    const bannerGradients = [
-                      'from-[#0b192c] via-[#1e3a8a] to-[#0284c7]',
-                      'from-[#042f2e] via-[#0d9488] to-[#06b6d4]',
-                      'from-[#1e1b4b] via-[#4338ca] to-[#3b82f6]',
-                      'from-[#18181b] via-[#27272a] to-[#0284c7]'
-                    ];
-                    const bannerGrad = bannerGradients[idx % bannerGradients.length];
-
-                    return (
-                      <div
-                        key={h.tenantId}
-                        className="bg-white rounded-[26px] border border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group relative"
+              {/* ── SUB-TAB 1: MY LINKED CLINICS ── */}
+              {clinicDiscoveryTab === 'linked' && (
+                <>
+                  {loading ? (
+                    <div className="min-h-[220px] bg-white rounded-3xl border border-slate-200/80 flex flex-col items-center justify-center py-12 text-slate-400 shadow-xs">
+                      <RotateCw className="w-7 h-7 animate-spin text-blue-600 mb-2.5" />
+                      <p className="text-xs font-semibold text-slate-600">Loading verified clinic associations...</p>
+                    </div>
+                  ) : hospitals.length === 0 ? (
+                    <div className="bg-white rounded-3xl border border-slate-200/90 p-8 text-center max-w-md mx-auto my-6 shadow-xs">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center mx-auto mb-3">
+                        <Building2 className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900">No Clinics Linked Yet</h3>
+                      <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        Your profile is active, but not yet linked to an authorized clinical record. Explore nearby clinics to connect or provide your UHID during your next clinic intake.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setClinicDiscoveryTab('nearby');
+                          if (patientLocation) fetchNearbyClinics(nearbyRadius);
+                        }}
+                        className="mt-4 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition cursor-pointer inline-flex items-center gap-1.5"
                       >
-                        {/* Top Context Banner */}
-                        <div className={`h-20 bg-gradient-to-r ${bannerGrad} p-4 flex items-start justify-between relative overflow-hidden`}>
-                          {/* Abstract Healthcare Cross Mesh in background */}
-                          <div className="absolute right-0 top-0 opacity-15 pointer-events-none transform translate-x-2 -translate-y-2">
-                            <svg width="100" height="80" viewBox="0 0 100 80" fill="white">
-                              <rect x="40" y="10" width="20" height="60" rx="4" />
-                              <rect x="20" y="30" width="60" height="20" rx="4" />
-                            </svg>
-                          </div>
+                        <Compass className="w-4 h-4" />
+                        <span>Find Nearby Clinics</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {hospitals.map((h, idx) => {
+                        const isEntering = enteringTenant === (h.tenantId || h.code);
+                        const bannerGradients = [
+                          'from-[#0b192c] via-[#1e3a8a] to-[#0284c7]',
+                          'from-[#042f2e] via-[#0d9488] to-[#06b6d4]',
+                          'from-[#1e1b4b] via-[#4338ca] to-[#3b82f6]',
+                          'from-[#18181b] via-[#27272a] to-[#0284c7]'
+                        ];
+                        const bannerGrad = bannerGradients[idx % bannerGradients.length];
 
-                          {/* Status Indicator */}
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-bold text-white z-10">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                            <span>Active Network Partner</span>
-                          </div>
+                        return (
+                          <div
+                            key={h.tenantId || h.code || idx}
+                            className="bg-white rounded-[26px] border border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group relative"
+                          >
+                            {/* Top Context Banner */}
+                            <div className={`h-20 bg-gradient-to-r ${bannerGrad} p-4 flex items-start justify-between relative overflow-hidden`}>
+                              <div className="absolute right-0 top-0 opacity-15 pointer-events-none transform translate-x-2 -translate-y-2">
+                                <svg width="100" height="80" viewBox="0 0 100 80" fill="white">
+                                  <rect x="40" y="10" width="20" height="60" rx="4" />
+                                  <rect x="20" y="30" width="60" height="20" rx="4" />
+                                </svg>
+                              </div>
 
-                          {/* Hospital Code Tag */}
-                          <span className="text-[10px] font-mono font-bold text-white/90 bg-black/25 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-md uppercase z-10">
-                            {h.hospitalId || h.tenantId}
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-bold text-white z-10">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                <span>Active Network Partner</span>
+                              </div>
+
+                              <span className="text-[10px] font-mono font-bold text-white/90 bg-black/25 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-md uppercase z-10">
+                                {h.hospitalId || h.tenantId || h.code}
+                              </span>
+                            </div>
+
+                            {/* Card Content Area */}
+                            <div className="p-5 pt-0 flex-1 flex flex-col justify-between">
+                              <div>
+                                {/* Floating Dynamic Logo Badge Overlapping Banner */}
+                                <div className="flex items-end justify-between -mt-8 mb-3">
+                                  <div className="p-1 bg-white rounded-2xl shadow-md border-2 border-white inline-block">
+                                    <HospitalBrandLogo hospital={h} size={50} borderRadius={12} fontSize={20} />
+                                  </div>
+                                  {/* Mandatory Phase 2: YOUR CLINIC Badge */}
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    <span>YOUR CLINIC</span>
+                                  </span>
+                                </div>
+
+                                {/* Clinic Title */}
+                                <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition tracking-tight leading-snug">
+                                  {h.name}
+                                </h3>
+
+                                {/* Location / Address */}
+                                <p className="text-xs text-slate-500 mt-1 flex items-start gap-1 line-clamp-1">
+                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                                  <span>{h.address || [h.city, h.state, h.pincode].filter(Boolean).join(', ') || 'Address on file'}</span>
+                                </p>
+
+                                {/* Clinical Features & Capabilities Chips */}
+                                <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                                    ⚡ Express OPD
+                                  </span>
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                    📄 ABDM Prescriptions
+                                  </span>
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100">
+                                    🔬 Lab Reports
+                                  </span>
+                                </div>
+
+                                {/* Patient Clinical Identifier */}
+                                <div className="mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                                  <span className="text-slate-500 font-medium text-[11px]">Clinic MRN</span>
+                                  <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+                                    {h.hospitalPatientId || h.clinicMrn || 'PAT-RECORD'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Enter Action Button */}
+                              <div className="mt-5 pt-3 border-t border-slate-100">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEnterHospital(h)}
+                                  disabled={Boolean(enteringTenant)}
+                                  className="w-full min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] disabled:opacity-50 transition shadow-sm hover:shadow-md cursor-pointer"
+                                >
+                                  {isEntering ? (
+                                    <>
+                                      <RotateCw className="w-4 h-4 animate-spin" />
+                                      <span>Connecting to Clinical Session...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>Enter Clinic Portal</span>
+                                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── SUB-TAB 2: NEARBY CLINICS ── */}
+              {clinicDiscoveryTab === 'nearby' && (
+                <div className="space-y-4">
+                  {/* Distance Filter Bar & Location Banner */}
+                  <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    {/* Radius Pills: [ 3 km ] [ 5 km ] [ 10 km ] [ 15 km ] */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5 mr-1">
+                        <Compass className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Search Radius:</span>
+                      </span>
+                      {[3, 5, 10, 15].map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => {
+                            if (nearbyRadius !== r) {
+                              setNearbyRadius(r);
+                              fetchNearbyClinics(r);
+                            }
+                          }}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer border ${
+                            nearbyRadius === r
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/60'
+                          }`}
+                        >
+                          {r} km
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Active Location Indicator */}
+                    <div className="flex items-center gap-2 text-xs">
+                      {patientLocation ? (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold">
+                          <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          <span>
+                            {patientLocation.type === 'gps'
+                              ? 'GPS Coordinates'
+                              : `PIN: ${patientLocation.pincode}${nearbySearchContext?.district ? ` (${nearbySearchContext.district})` : ''}`}
                           </span>
                         </div>
+                      ) : (
+                        <span className="text-slate-400 italic">No location selected</span>
+                      )}
+                    </div>
+                  </div>
 
-                        {/* Card Content Area */}
-                        <div className="p-5 pt-0 flex-1 flex flex-col justify-between">
-                          <div>
-                            {/* Floating Dynamic Logo Badge Overlapping Banner */}
-                            <div className="flex items-end justify-between -mt-8 mb-3">
-                              <div className="p-1 bg-white rounded-2xl shadow-md border-2 border-white inline-block">
-                                <HospitalBrandLogo hospital={h} size={50} borderRadius={12} fontSize={20} />
-                              </div>
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 rounded-full">
-                                <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                                <span>Verified Facility</span>
-                              </span>
-                            </div>
+                  {/* Postal Disclaimer if Approximate */}
+                  {(nearbySearchContext?.isApproximate || patientLocation?.type === 'pincode') && (
+                    <div className="p-3 rounded-2xl bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs flex items-center gap-2">
+                      <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>
+                        Distances are calculated from your postal code center and may vary by 3–5 km. Clinic locations are verified.
+                      </span>
+                    </div>
+                  )}
 
-                            {/* Hospital Title */}
-                            <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition tracking-tight leading-snug">
-                              {h.name}
-                            </h3>
-
-                            {/* Location / Address */}
-                            <p className="text-xs text-slate-500 mt-1 flex items-start gap-1 line-clamp-1">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                              <span>{h.address || '742 Evergreen Terrace, Sector 4, New Delhi'}</span>
-                            </p>
-
-                            {/* Clinical Features & Capabilities Chips */}
-                            <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
-                                ⚡ Express OPD
-                              </span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                📄 ABDM Prescriptions
-                              </span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100">
-                                🔬 Lab Reports
-                              </span>
-                            </div>
-
-                            {/* Patient Clinical Identifier */}
-                            <div className="mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                              <span className="text-slate-500 font-medium text-[11px]">Clinic MRN</span>
-                              <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
-                                {h.hospitalPatientId || h.clinicMrn || 'PAT-CITYHD-000016'}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Enter Action Button */}
-                          <div className="mt-5 pt-3 border-t border-slate-100">
-                            <button
-                              type="button"
-                              onClick={() => handleEnterHospital(h)}
-                              disabled={Boolean(enteringTenant)}
-                              className="w-full min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] disabled:opacity-50 transition shadow-sm hover:shadow-md cursor-pointer"
-                            >
-                              {isEntering ? (
-                                <>
-                                  <RotateCw className="w-4 h-4 animate-spin" />
-                                  <span>Connecting to Clinical Session...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span>Enter Hospital Portal</span>
-                                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
+                  {/* Results State */}
+                  {loadingNearby ? (
+                    <div className="min-h-[220px] bg-white rounded-3xl border border-slate-200/80 flex flex-col items-center justify-center py-12 text-slate-400 shadow-xs">
+                      <RotateCw className="w-7 h-7 animate-spin text-blue-600 mb-2.5" />
+                      <p className="text-xs font-semibold text-slate-600">
+                        Searching for verified clinics within {nearbyRadius} km...
+                      </p>
+                    </div>
+                  ) : nearbyError ? (
+                    <div className="p-6 bg-red-50 text-red-700 rounded-3xl border border-red-200 flex flex-col items-center text-center max-w-md mx-auto my-6">
+                      <AlertCircle className="w-6 h-6 text-red-600 mb-2" />
+                      <h3 className="text-sm font-bold text-red-900 mb-1">Search Error</h3>
+                      <p className="text-xs text-red-700 mb-4">{nearbyError}</p>
+                      <button
+                        type="button"
+                        onClick={() => fetchNearbyClinics(nearbyRadius)}
+                        className="px-4 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition cursor-pointer"
+                      >
+                        Retry Search
+                      </button>
+                    </div>
+                  ) : nearbyClinics.length === 0 ? (
+                    <div className="bg-white rounded-3xl border border-slate-200/90 p-8 text-center max-w-md mx-auto my-6 shadow-xs">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center mx-auto mb-3">
+                        <Compass className="w-6 h-6" />
                       </div>
-                    );
-                  })}
+                      <h3 className="text-base font-bold text-slate-900">
+                        No Clinics Found Within {nearbyRadius} km
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        We could not find any active Quroxa network clinics within {nearbyRadius} km of your selected location.
+                      </p>
+                      {nearbyRadius < 15 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNearbyRadius(15);
+                            fetchNearbyClinics(15);
+                          }}
+                          className="mt-4 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                          <Compass className="w-4 h-4" />
+                          <span>Expand to 15 km</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {nearbyClinics.map((c, idx) => {
+                        const isEntering = enteringTenant === (c.tenantId || c.code);
+                        const isLinked = isClinicLinked(c);
+                        const bannerGradients = [
+                          'from-[#0b192c] via-[#1e3a8a] to-[#0284c7]',
+                          'from-[#042f2e] via-[#0d9488] to-[#06b6d4]',
+                          'from-[#1e1b4b] via-[#4338ca] to-[#3b82f6]',
+                          'from-[#18181b] via-[#27272a] to-[#0284c7]'
+                        ];
+                        const bannerGrad = bannerGradients[idx % bannerGradients.length];
+
+                        // Distance badge label
+                        const isApprox = nearbySearchContext?.isApproximate || c.locationSource === 'pincode_approximate' || Boolean(c.distanceLabel);
+                        const distanceDisplay = c.distanceKm !== null && c.distanceKm !== undefined
+                          ? (isApprox ? `Approx. ${c.distanceKm} km away` : `${c.distanceKm} km away`)
+                          : 'Approx. distance';
+
+                        return (
+                          <div
+                            key={c.code || c.hospitalId || idx}
+                            className="bg-white rounded-[26px] border border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group relative"
+                          >
+                            {/* Top Context Banner */}
+                            <div className={`h-20 bg-gradient-to-r ${bannerGrad} p-4 flex items-start justify-between relative overflow-hidden`}>
+                              <div className="absolute right-0 top-0 opacity-15 pointer-events-none transform translate-x-2 -translate-y-2">
+                                <svg width="100" height="80" viewBox="0 0 100 80" fill="white">
+                                  <rect x="40" y="10" width="20" height="60" rx="4" />
+                                  <rect x="20" y="30" width="60" height="20" rx="4" />
+                                </svg>
+                              </div>
+
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-bold text-white z-10">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                <span>Active Network Partner</span>
+                              </div>
+
+                              <span className="text-[10px] font-mono font-bold text-white/90 bg-black/25 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-md uppercase z-10">
+                                {c.hospitalId || c.code}
+                              </span>
+                            </div>
+
+                            {/* Card Content Area */}
+                            <div className="p-5 pt-0 flex-1 flex flex-col justify-between">
+                              <div>
+                                {/* Floating Dynamic Logo Badge Overlapping Banner */}
+                                <div className="flex items-end justify-between -mt-8 mb-3">
+                                  <div className="p-1 bg-white rounded-2xl shadow-md border-2 border-white inline-block">
+                                    <HospitalBrandLogo hospital={c} size={50} borderRadius={12} fontSize={20} />
+                                  </div>
+                                  {isLinked ? (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                      <span>YOUR CLINIC</span>
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 rounded-full">
+                                      <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                                      <span>Verified Facility</span>
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Clinic Name */}
+                                <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition tracking-tight leading-snug">
+                                  {c.name}
+                                </h3>
+
+                                {/* Distance Badge */}
+                                <div className="mt-2">
+                                  <span
+                                    className={`inline-flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-full border ${
+                                      isApprox
+                                        ? 'bg-amber-50 text-amber-800 border-amber-200/80'
+                                        : 'bg-blue-50 text-blue-700 border-blue-200/80'
+                                    }`}
+                                  >
+                                    <Compass className="w-3.5 h-3.5" />
+                                    <span>{distanceDisplay}</span>
+                                  </span>
+                                </div>
+
+                                {/* Location / Address */}
+                                <p className="text-xs text-slate-500 mt-2.5 flex items-start gap-1 line-clamp-2">
+                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                                  <span>
+                                    {[c.address, c.city, c.state, c.pincode].filter(Boolean).join(', ') || 'Address on file'}
+                                  </span>
+                                </p>
+
+                                {/* Specialties or Features Chips */}
+                                <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+                                  {Array.isArray(c.specialties) && c.specialties.length > 0 ? (
+                                    c.specialties.slice(0, 3).map((spec) => (
+                                      <span
+                                        key={spec}
+                                        className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100"
+                                      >
+                                        {spec}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <>
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                                        ⚡ OPD Consultations
+                                      </span>
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                        📄 Digital Prescriptions
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+
+                                {/* Public Contact Phone if available */}
+                                {c.phone && (
+                                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                                    <span className="text-slate-400 font-medium text-[11px]">Reception</span>
+                                    <a
+                                      href={`tel:${c.phone}`}
+                                      className="font-bold text-slate-700 hover:text-blue-600 flex items-center gap-1 transition"
+                                    >
+                                      <Phone className="w-3 h-3 text-blue-600" />
+                                      <span>{c.phone}</span>
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Enter Action Button */}
+                              <div className="mt-5 pt-3 border-t border-slate-100">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEnterHospital(c)}
+                                  disabled={Boolean(enteringTenant)}
+                                  className="w-full min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] disabled:opacity-50 transition shadow-sm hover:shadow-md cursor-pointer"
+                                >
+                                  {isEntering ? (
+                                    <>
+                                      <RotateCw className="w-4 h-4 animate-spin" />
+                                      <span>Connecting to Clinical Session...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>Enter Clinic Portal</span>
+                                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -895,17 +1261,17 @@ export const GlobalPortalPage = () => {
         )}
 
         {/* ════════════════════════════════════════════════════════════════
-            TAB 2: HOSPITALS DIRECTORY VIEW
+            TAB 2: CLINICS DIRECTORY VIEW
            ════════════════════════════════════════════════════════════════ */}
         {activeTab === 'hospitals' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
               <div>
                 <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                  Healthcare Provider Network
+                  Clinic Directory &amp; Network
                 </h1>
                 <p className="text-xs text-slate-500 mt-1">
-                  Manage your clinical access, appointments, or discover verified healthcare facilities near you.
+                  Manage your clinical access, appointments, or discover verified clinics near you.
                 </p>
               </div>
 
@@ -921,7 +1287,7 @@ export const GlobalPortalPage = () => {
                   }`}
                 >
                   <Building2 className="w-3.5 h-3.5" />
-                  <span>My Linked Care ({hospitals.length})</span>
+                  <span>My Linked Clinics ({hospitals.length})</span>
                 </button>
                 <button
                   type="button"
@@ -933,7 +1299,7 @@ export const GlobalPortalPage = () => {
                   }`}
                 >
                   <Compass className="w-3.5 h-3.5" />
-                  <span>Find Nearby Facilities</span>
+                  <span>Find Nearby Clinics</span>
                 </button>
               </div>
             </div>
@@ -949,9 +1315,9 @@ export const GlobalPortalPage = () => {
                 <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center mx-auto mb-3">
                   <Building2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900">No Hospitals Linked Yet</h3>
+                <h3 className="text-base font-bold text-slate-900">No Clinics Linked Yet</h3>
                 <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                  Your profile is active, but not yet linked to an authorized clinical record. Explore nearby hospitals to connect or provide your UHID during your next clinic intake.
+                  Your profile is active, but not yet linked to an authorized clinical record. Explore nearby clinics to connect or provide your UHID during your next clinic intake.
                 </p>
                 <button
                   type="button"
@@ -959,13 +1325,13 @@ export const GlobalPortalPage = () => {
                   className="mt-4 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <Compass className="w-4 h-4" />
-                  <span>Find Nearby Facilities</span>
+                  <span>Find Nearby Clinics</span>
                 </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {hospitals.map((h, idx) => {
-                const isEntering = enteringTenant === h.tenantId;
+                const isEntering = enteringTenant === (h.tenantId || h.code);
                 const bannerGradients = [
                   'from-[#0b192c] via-[#1e3a8a] to-[#0284c7]',
                   'from-[#042f2e] via-[#0d9488] to-[#06b6d4]',
@@ -976,7 +1342,7 @@ export const GlobalPortalPage = () => {
 
                 return (
                   <div
-                    key={h.tenantId}
+                    key={h.tenantId || h.code || idx}
                     className="bg-white rounded-[26px] border border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group relative"
                   >
                     {/* Top Context Banner */}
@@ -994,7 +1360,7 @@ export const GlobalPortalPage = () => {
                       </div>
 
                       <span className="text-[10px] font-mono font-bold text-white/90 bg-black/25 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-md uppercase z-10">
-                        {h.hospitalId || h.tenantId}
+                        {h.hospitalId || h.tenantId || h.code}
                       </span>
                     </div>
 
@@ -1006,13 +1372,13 @@ export const GlobalPortalPage = () => {
                           <div className="p-1 bg-white rounded-2xl shadow-md border-2 border-white inline-block">
                             <HospitalBrandLogo hospital={h} size={50} borderRadius={12} fontSize={20} />
                           </div>
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 rounded-full">
-                            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                            <span>Verified Facility</span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>YOUR CLINIC</span>
                           </span>
                         </div>
 
-                        {/* Hospital Title */}
+                        {/* Clinic Title */}
                         <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition tracking-tight leading-snug">
                           {h.name}
                         </h3>
@@ -1020,7 +1386,7 @@ export const GlobalPortalPage = () => {
                         {/* Location / Address */}
                         <p className="text-xs text-slate-500 mt-1 flex items-start gap-1 line-clamp-1">
                           <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                          <span>{h.address || '742 Evergreen Terrace, Sector 4, New Delhi'}</span>
+                          <span>{h.address || [h.city, h.state, h.pincode].filter(Boolean).join(', ') || 'Address on file'}</span>
                         </p>
 
                         {/* Clinical Features & Capabilities Chips */}
@@ -1040,7 +1406,7 @@ export const GlobalPortalPage = () => {
                         <div className="mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
                           <span className="text-slate-500 font-medium text-[11px]">Clinic MRN</span>
                           <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
-                            {h.hospitalPatientId || h.clinicMrn || 'PAT-CITYHD-000016'}
+                            {h.hospitalPatientId || h.clinicMrn || 'PAT-RECORD'}
                           </span>
                         </div>
                       </div>
@@ -1060,7 +1426,7 @@ export const GlobalPortalPage = () => {
                             </>
                           ) : (
                             <>
-                              <span>Enter Hospital Portal</span>
+                              <span>Enter Clinic Portal</span>
                               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </>
                           )}
@@ -1193,7 +1559,7 @@ export const GlobalPortalPage = () => {
                             <div>
                               <div className="font-mono font-bold text-slate-800">{req.requestId}</div>
                               <div className="text-[11px] text-slate-500 mt-0.5">
-                                Hospital Tenant: <span className="font-bold uppercase">{req.tenantId}</span>
+                                Clinic Tenant: <span className="font-bold uppercase">{req.tenantId}</span>
                               </div>
                               <div className="text-[11px] font-bold text-amber-800 mt-1 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
@@ -1218,7 +1584,7 @@ export const GlobalPortalPage = () => {
                   {/* Discrete Trigger Button */}
                   <div className="pt-2">
                     <p className="text-[11px] text-slate-500 mb-2">
-                      Select an affiliated hospital to open institutional consent revocation settings:
+                      Select an affiliated clinic to open institutional consent revocation settings:
                     </p>
                     <div className="flex items-center gap-2 flex-wrap">
                       {hospitals.map(h => (
@@ -1268,7 +1634,7 @@ export const GlobalPortalPage = () => {
             }`}
           >
             <Building2 className="w-5 h-5" />
-            <span className="text-[10px]">Hospitals</span>
+            <span className="text-[10px]">Clinics</span>
           </button>
 
           <button

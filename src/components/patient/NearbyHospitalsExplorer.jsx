@@ -26,7 +26,7 @@ export const NearbyHospitalsExplorer = ({
   currentLocation = null,
   onResetLocation = null
 }) => {
-  // Radius Options: 5 km, 10 km (default), 25 km, 50 km
+  // Radius Options: 3 km, 5 km, 10 km (default), 15 km
   const [radiusKm, setRadiusKm] = useState(10);
   const [pincodeInput, setPincodeInput] = useState(() => {
     return currentLocation?.pincode || localStorage.getItem('quroxa_patient_pincode') || '';
@@ -39,6 +39,7 @@ export const NearbyHospitalsExplorer = ({
   const [hospitals, setHospitals] = useState([]);
   const [searchContext, setSearchContext] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [lastGpsCoords, setLastGpsCoords] = useState(null);
 
   // Active method: 'gps' | 'pincode'
   const [activeMethod, setActiveMethod] = useState(currentLocation?.type || 'gps');
@@ -84,7 +85,7 @@ export const NearbyHospitalsExplorer = ({
         setPinError('Failed to retrieve nearby healthcare providers.');
       }
     } catch (err) {
-      const msg = err.response?.data?.error || err.message || 'Error querying nearby hospitals.';
+      const msg = err.response?.data?.error || err.message || 'Error querying nearby clinics.';
       if (pincode) {
         setPinError(msg);
       } else {
@@ -112,6 +113,7 @@ export const NearbyHospitalsExplorer = ({
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
+        setLastGpsCoords({ lat: latitude, lng: longitude });
         setActiveMethod('gps');
         executeSearch({ lat: latitude, lng: longitude });
       },
@@ -158,14 +160,15 @@ export const NearbyHospitalsExplorer = ({
     executeSearch({ pincode: clean });
   };
 
-  // Change radius and re-trigger active search
+  // Change radius and re-trigger active search without re-requesting browser geolocation
   const handleRadiusChange = (newRadius) => {
     setRadiusKm(newRadius);
     if (searchContext) {
       if (searchContext.pincode) {
         executeSearch({ pincode: searchContext.pincode, radius: newRadius });
-      } else if (activeMethod === 'gps') {
-        // Re-request coordinates
+      } else if (lastGpsCoords) {
+        executeSearch({ lat: lastGpsCoords.lat, lng: lastGpsCoords.lng, radius: newRadius });
+      } else {
         handleRequestGps();
       }
     }
@@ -190,7 +193,7 @@ export const NearbyHospitalsExplorer = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {isOnboarding ? 'Discover Care Near You' : 'Nearby Healthcare Providers'}
+                  {isOnboarding ? 'Discover Care Near You' : 'Clinics Near You'}
                 </h1>
                 {isOnboarding && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
@@ -199,7 +202,7 @@ export const NearbyHospitalsExplorer = ({
                 )}
               </div>
               <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-                Connect your medical journey with accredited hospitals, clinics, and emergency facilities in your vicinity.
+                Connect your medical journey with accredited clinics and healthcare facilities in your vicinity.
               </p>
             </div>
           </div>
@@ -320,7 +323,7 @@ export const NearbyHospitalsExplorer = ({
               <span>Search Radius:</span>
             </div>
             <div className="flex items-center gap-1.5">
-              {[5, 10, 25, 50].map((r) => (
+              {[3, 5, 10, 15].map((r) => (
                 <button
                   key={r}
                   type="button"
@@ -369,8 +372,8 @@ export const NearbyHospitalsExplorer = ({
       {loading && (
         <div className="p-12 text-center bg-white rounded-3xl border border-slate-200">
           <RotateCw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-slate-800">Locating accredited healthcare facilities…</h3>
-          <p className="text-xs text-slate-400 mt-1">Comparing verified facility coordinates across our provider network.</p>
+          <h3 className="text-sm font-bold text-slate-800">Locating accredited clinics…</h3>
+          <p className="text-xs text-slate-400 mt-1">Comparing verified clinic coordinates across our provider network.</p>
         </div>
       )}
 
@@ -379,7 +382,7 @@ export const NearbyHospitalsExplorer = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-600">
-              Found {hospitals.length} Healthcare Facilities Nearby
+              Found {hospitals.length} {hospitals.length === 1 ? 'Clinic' : 'Clinics'} Nearby
             </h2>
             <span className="text-xs text-slate-400">Sorted by distance</span>
           </div>
@@ -474,7 +477,7 @@ export const NearbyHospitalsExplorer = ({
                       onClick={() => onSelectHospital && onSelectHospital(h)}
                       className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition cursor-pointer min-h-[36px]"
                     >
-                      <span>Connect Portal</span>
+                      <span>Enter Clinic Portal</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -493,7 +496,7 @@ export const NearbyHospitalsExplorer = ({
                     Location Setup Complete
                   </h4>
                   <p className="text-xs text-emerald-800">
-                    Your nearby healthcare network is ready. You can now access your central patient dashboard.
+                    Your nearby clinic network is ready. You can now access your central patient dashboard.
                   </p>
                 </div>
               </div>
@@ -511,7 +514,7 @@ export const NearbyHospitalsExplorer = ({
         </div>
       )}
 
-      {/* ── EMPTY STATE (NO HOSPITALS WITHIN RADIUS) ── */}
+      {/* ── EMPTY STATE (NO CLINICS WITHIN RADIUS) ── */}
       {!loading && stage === 'empty' && (
         <div className="p-8 sm:p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
           <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
@@ -519,16 +522,16 @@ export const NearbyHospitalsExplorer = ({
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900">
-              No Quroxa facilities found within {radiusKm} km
+              No Quroxa clinics found within {radiusKm} km
             </h3>
             <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
-              We did not find active hospitals in your immediate radius. Try expanding the search radius or enter a different PIN code.
+              We did not find active clinics in your immediate radius. Try expanding the search radius or enter a different PIN code.
             </p>
           </div>
 
           {/* Radius Expansion Quick Buttons */}
           <div className="flex items-center justify-center gap-2 pt-2">
-            {[25, 50].map((r) => (
+            {[5, 15].map((r) => (
               <button
                 key={r}
                 type="button"

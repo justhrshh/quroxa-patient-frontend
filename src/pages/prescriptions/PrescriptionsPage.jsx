@@ -229,7 +229,7 @@ export const PrescriptionsPage = () => {
                     <div className="mb-6 border-b border-slate-200 pb-4">
                       <img
                         src={selectedRx.hospitalLetterheadUrl}
-                        alt="Hospital Letterhead"
+                        alt="Clinic Letterhead"
                         className="w-full max-h-24 object-contain mx-auto"
                       />
                     </div>
@@ -241,7 +241,7 @@ export const PrescriptionsPage = () => {
                         )}
                         <div>
                           <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
-                            {hospital?.name || 'Hospital Clinical Services'}
+                            {hospital?.name || 'Clinic Services'}
                           </h2>
                           <p className="text-xs text-slate-500 font-medium max-w-sm">
                             {hospital?.address || 'Healthcare Clinical Facility'}

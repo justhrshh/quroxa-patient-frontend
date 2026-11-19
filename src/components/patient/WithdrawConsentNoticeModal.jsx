@@ -109,7 +109,7 @@ const WithdrawConsentNoticeModal = ({ isOpen, onClose }) => {
         >
           <span style={{ fontSize: '14px', flexShrink: 0 }}>ℹ️</span>
           <span>
-            Your medical records and privacy settings remain strictly protected under your hospital tenant encryption boundary.
+            Your medical records and privacy settings remain strictly protected under your clinic tenant encryption boundary.
           </span>
         </div>
 

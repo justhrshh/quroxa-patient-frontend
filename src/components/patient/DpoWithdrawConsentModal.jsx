@@ -329,7 +329,7 @@ const DpoWithdrawConsentModal = ({ isOpen, onClose, selectedHospital, onRequestC
               </div>
 
               <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: 1.45, margin: '0 0 14px', fontWeight: 500 }}>
-                Under India's <strong>Digital Personal Data Protection Act 2023</strong>, select the categories of records you want to withdraw from this hospital:
+                Under India's <strong>Digital Personal Data Protection Act 2023</strong>, select the categories of records you want to withdraw from this clinic:
               </p>
 
               {/* Category Checkboxes */}
@@ -513,7 +513,7 @@ const DpoWithdrawConsentModal = ({ isOpen, onClose, selectedHospital, onRequestC
                   </svg>
                 </div>
                 <div style={{ fontSize: '11.8px', color: '#92400E', lineHeight: 1.45 }}>
-                  <strong>72-Hour Statutory Cooling-Off:</strong> Initiates a 72-hour review window. You or the hospital DPO may cancel anytime within 72 hours before processing occurs.
+                  <strong>72-Hour Statutory Cooling-Off:</strong> Initiates a 72-hour review window. You or the clinic DPO may cancel anytime within 72 hours before processing occurs.
                 </div>
               </div>
             </div>
@@ -588,7 +588,7 @@ const DpoWithdrawConsentModal = ({ isOpen, onClose, selectedHospital, onRequestC
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                     <span style={{ color: '#2563EB', fontWeight: 800 }}>•</span>
                     <div>
-                      <strong>Hospital Tenant Isolation:</strong> This request applies strictly to <em>{hospitalName}</em>. Other hospitals in Quroxa remain unaffected.
+                      <strong>Clinic Tenant Isolation:</strong> This request applies strictly to <em>{hospitalName}</em>. Other clinics in Quroxa remain unaffected.
                     </div>
                   </div>
 
@@ -609,7 +609,7 @@ const DpoWithdrawConsentModal = ({ isOpen, onClose, selectedHospital, onRequestC
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                     <span style={{ color: '#2563EB', fontWeight: 800 }}>•</span>
                     <div>
-                      <strong>Fresh Re-Registration:</strong> If you re-register at this hospital later, you will receive a brand-new patient ID and UH-ID.
+                      <strong>Fresh Re-Registration:</strong> If you re-register at this clinic later, you will receive a brand-new patient ID and UH-ID.
                     </div>
                   </div>
                 </div>

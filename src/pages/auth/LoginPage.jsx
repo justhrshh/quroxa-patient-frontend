@@ -245,13 +245,13 @@ export const LoginPage = () => {
               </h1>
               <p className="text-xs text-slate-500 mb-6 leading-relaxed">
                 {hospitalError === 'suspended'
-                  ? `The portal for '${hospitalSlug}' is temporarily suspended. Please reach out to hospital management.`
-                  : `No hospital exists matching '${hospitalSlug}'. Please verify the URL slug or select your hospital.`}
+                  ? `The portal for '${hospitalSlug}' is temporarily suspended. Please reach out to clinic management.`
+                  : `No clinic exists matching '${hospitalSlug}'. Please verify the URL slug or select your clinic.`}
               </p>
               <Link to="/" className="block">
                 <Button variant="primary" size="md" className="w-full">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  <span>Choose Another Hospital</span>
+                  <span>Choose Another Clinic</span>
                 </Button>
               </Link>
             </CardContent>
@@ -427,12 +427,12 @@ export const LoginPage = () => {
               </form>
             )}
 
-            {/* Back to hospital selector */}
+            {/* Back to clinic selector */}
             <div className="mt-6 pt-5 border-t border-slate-100">
               <Link to="/" className="block">
                 <Button variant="ghost" size="sm" className="w-full text-slate-500 hover:text-slate-800">
                   <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
-                  <span>Choose Another Hospital</span>
+                  <span>Choose Another Clinic</span>
                 </Button>
               </Link>
             </div>

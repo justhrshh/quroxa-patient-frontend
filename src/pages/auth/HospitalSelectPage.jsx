@@ -15,7 +15,7 @@ export const HospitalSelectPage = () => {
     e.preventDefault();
     const clean = slugInput.trim().toLowerCase();
     if (!clean) {
-      setError('Please enter your hospital code or identifier to continue.');
+      setError('Please enter your clinic code or identifier to continue.');
       return;
     }
 
@@ -25,7 +25,7 @@ export const HospitalSelectPage = () => {
     try {
       const hospital = await authService.resolveHospital(clean);
       if (hospital?.status === 'Suspended') {
-        setError('This hospital portal is currently suspended. Please contact hospital administration.');
+        setError('This clinic portal is currently suspended. Please contact clinic administration.');
         return;
       }
 
@@ -38,7 +38,7 @@ export const HospitalSelectPage = () => {
       navigate(`/${encodeURIComponent(targetSlug)}/login`);
     } catch (err) {
       if (err.response?.status === 404) {
-        setError('Hospital not found. Please verify the identifier with your hospital reception.');
+        setError('Clinic not found. Please verify the identifier with your clinic reception.');
       } else {
         // If network issue, allow direct navigation as fallback
         navigate(`/${encodeURIComponent(clean)}/login`);
@@ -64,24 +64,24 @@ export const HospitalSelectPage = () => {
           </p>
         </div>
 
-        {/* Hospital Resolver Card */}
+        {/* Clinic Resolver Card */}
         <Card className="shadow-float border-slate-200">
           <CardContent className="p-6 sm:p-8">
             <div className="flex items-center gap-2 mb-4">
               <Building2 className="w-5 h-5 text-blue-600" />
               <h2 className="text-base font-bold text-slate-800">
-                Find Your Hospital
+                Find Your Clinic
               </h2>
             </div>
 
             <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-              Enter your hospital's portal identifier or code provided by reception (e.g., <code className="bg-slate-100 px-1.5 py-0.5 rounded text-blue-600 font-mono">city_hospital</code> or <code className="bg-slate-100 px-1.5 py-0.5 rounded text-blue-600 font-mono">HSP-DM5UDO</code>).
+              Enter your clinic's portal identifier or code provided by reception (e.g., <code className="bg-slate-100 px-1.5 py-0.5 rounded text-blue-600 font-mono">city_hospital</code> or <code className="bg-slate-100 px-1.5 py-0.5 rounded text-blue-600 font-mono">HSP-DM5UDO</code>).
             </p>
 
             <form onSubmit={handleSelect} className="space-y-4">
               <div>
                 <label htmlFor="hospitalSlug" className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Hospital Identifier / Slug
+                  Clinic Identifier / Slug
                 </label>
                 <div className="relative">
                   <input
@@ -110,11 +110,11 @@ export const HospitalSelectPage = () => {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    <span>Resolving Hospital...</span>
+                    <span>Resolving Clinic...</span>
                   </>
                 ) : (
                   <>
-                    <span>Continue to Hospital Portal</span>
+                    <span>Continue to Clinic Portal</span>
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}

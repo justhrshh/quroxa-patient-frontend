@@ -184,7 +184,7 @@ export const ProfilePage = () => {
                   <span className="font-mono font-bold text-slate-800">{formData.uhId || '—'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Hospital Patient ID</span>
+                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Clinic Patient ID</span>
                   <span className="font-mono font-bold text-slate-800">{formData.patientId || '—'}</span>
                 </div>
                 <div>
