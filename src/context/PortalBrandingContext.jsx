@@ -18,6 +18,22 @@ export const usePortalBranding = () => {
 };
 
 /**
+ * Checks if a URL points to an unresolvable documentation or test placeholder domain (e.g. cdn.example.com).
+ * Uses exact hostname validation to ensure legitimate clinic domains (e.g. example.com-health.org) are not rejected.
+ */
+const isUnresolvablePlaceholder = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return false;
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    return host === 'example.com' || host.endsWith('.example.com') || host === 'via.placeholder.com' || host.endsWith('.via.placeholder.com');
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Reusable branding badge component for rendering hospital logo or monogram.
  * Strictly adheres to Quroxa design system:
  * - Real image URL -> <img> with graceful fallback
@@ -43,9 +59,13 @@ export const HospitalBrandLogo = ({
 
   if (!hospital) return null;
 
+  // Reject placeholder / unresolvable documentation domains (e.g. cdn.example.com) via exact hostname check
+  const isInvalidPlaceholder = isUnresolvablePlaceholder(cleanLogo);
+
   const isImageFormat = Boolean(
     cleanLogo &&
     cleanLogo !== 'H' &&
+    !isInvalidPlaceholder &&
     (
       cleanLogo.startsWith('data:image/') ||
       cleanLogo.startsWith('http://') ||
