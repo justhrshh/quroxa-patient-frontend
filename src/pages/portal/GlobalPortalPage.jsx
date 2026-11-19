@@ -30,21 +30,34 @@ import {
   ShieldOff,
   Clock,
   Sparkles,
-  Info
+  Info,
+  Compass
 } from 'lucide-react';
 import curoxaIconLogo from '../../assets/curoxa_icon_logo.png';
 import curoxaHero3D from '../../assets/curoxa_hero_3d.webp';
 import curoxaMobileHero3D from '../../assets/curoxa_mobile_hero_3d.webp';
 import QuroxaCurvyFooter from '../../components/common/QuroxaCurvyFooter';
+import NearbyHospitalsExplorer from '../../components/patient/NearbyHospitalsExplorer';
 
 export const GlobalPortalPage = () => {
-  const { globalToken, globalPatient, login, globalLogout } = useAuth();
+  const { 
+    globalToken, 
+    globalPatient, 
+    login, 
+    globalLogout, 
+    patientLocation, 
+    isLocationSetupComplete, 
+    setPatientLocation, 
+    clearPatientLocation 
+  } = useAuth();
   const [searchParams] = useSearchParams();
   const redirectHospital = searchParams.get('redirectHospital');
   const navigate = useNavigate();
 
   // Navigation Tabs: 'home' | 'hospitals' | 'profile'
   const [activeTab, setActiveTab] = useState('home');
+  // Hospital Sub-Tab: 'linked' | 'discover'
+  const [hospitalSubTab, setHospitalSubTab] = useState('linked');
 
   // Core Data
   const [hospitals, setHospitals] = useState(() => {
@@ -323,8 +336,26 @@ export const GlobalPortalPage = () => {
             </button>
           </nav>
 
-          {/* Right: Notifications & User Avatar Pill */}
+          {/* Right: Notifications, Location Pill & User Avatar */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Location Indicator Pill */}
+            {isLocationSetupComplete && patientLocation && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('hospitals');
+                  setHospitalSubTab('discover');
+                }}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200/80 text-xs font-bold text-blue-700 transition cursor-pointer shadow-2xs"
+                title="Your active discovery location. Click to change."
+              >
+                <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span className="max-w-[120px] truncate">
+                  {patientLocation.type === 'gps' ? 'GPS Active' : `PIN: ${patientLocation.pincode}`}
+                </span>
+              </button>
+            )}
+
             {/* Notification Bell */}
             <button
               type="button"
@@ -418,9 +449,27 @@ export const GlobalPortalPage = () => {
           </div>
         )}
 
-        {/* ════════════════════════════════════════════════════════════════
-            TAB 1: HOME (HERO + ABHA DIGITAL HEALTH ID + HOSPITALS)
-           ════════════════════════════════════════════════════════════════ */}
+        {/* ── MANDATORY LOCATION SETUP GATE (PHASE 4) ── */}
+        {!isLocationSetupComplete ? (
+          <div className="py-2">
+            <NearbyHospitalsExplorer
+              isOnboarding={true}
+              currentLocation={patientLocation}
+              onLocationVerified={(loc) => {
+                setPatientLocation(loc);
+                showToast(loc.type === 'gps' ? 'Location verified via GPS' : `Location set to PIN ${loc.pincode}`);
+              }}
+              onSelectHospital={handleEnterHospital}
+              onProceedToDashboard={() => {
+                showToast('Welcome to your Quroxa Patient Portal!');
+              }}
+            />
+          </div>
+        ) : (
+          <>
+            {/* ════════════════════════════════════════════════════════════════
+                TAB 1: HOME (HERO + ABHA DIGITAL HEALTH ID + HOSPITALS)
+               ════════════════════════════════════════════════════════════════ */}
         {activeTab === 'home' && (
           <div className="space-y-6 sm:space-y-8">
             {/* 1A. DESKTOP HERO SECTION (Exact Replication of User Screenshot) */}
@@ -850,18 +899,71 @@ export const GlobalPortalPage = () => {
            ════════════════════════════════════════════════════════════════ */}
         {activeTab === 'hospitals' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
               <div>
                 <h1 className="text-2xl font-black text-slate-900 tracking-tight">
                   Healthcare Provider Network
                 </h1>
                 <p className="text-xs text-slate-500 mt-1">
-                  Manage your clinical access, appointments, and medical histories across all linked institutions.
+                  Manage your clinical access, appointments, or discover verified healthcare facilities near you.
                 </p>
+              </div>
+
+              {/* Sub-tab pills */}
+              <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setHospitalSubTab('linked')}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    hospitalSubTab === 'linked'
+                      ? 'bg-white text-blue-600 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>My Linked Care ({hospitals.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHospitalSubTab('discover')}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    hospitalSubTab === 'discover'
+                      ? 'bg-white text-blue-600 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>Find Nearby Facilities</span>
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {hospitalSubTab === 'discover' ? (
+              <NearbyHospitalsExplorer
+                initialLocation={patientLocation}
+                onLocationSet={setPatientLocation}
+                onSelectHospital={handleEnterHospital}
+              />
+            ) : hospitals.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-8 text-center max-w-md mx-auto my-6 shadow-xs">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center mx-auto mb-3">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">No Hospitals Linked Yet</h3>
+                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                  Your profile is active, but not yet linked to an authorized clinical record. Explore nearby hospitals to connect or provide your UHID during your next clinic intake.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setHospitalSubTab('discover')}
+                  className="mt-4 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Compass className="w-4 h-4" />
+                  <span>Find Nearby Facilities</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {hospitals.map((h, idx) => {
                 const isEntering = enteringTenant === h.tenantId;
                 const bannerGradients = [
@@ -969,6 +1071,7 @@ export const GlobalPortalPage = () => {
                 );
               })}
             </div>
+            )}
           </div>
         )}
 
@@ -1139,43 +1242,47 @@ export const GlobalPortalPage = () => {
             </div>
           </div>
         )}
+            </>
+          )}
       </main>
 
       {/* ── MOBILE BOTTOM NAVIGATION BAR ── */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-6 py-2 shadow-lg flex items-center justify-around">
-        <button
-          type="button"
-          onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
-            activeTab === 'home' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
-          }`}
-        >
-          <Home className="w-5 h-5" />
-          <span className="text-[10px]">Home</span>
-        </button>
+      {isLocationSetupComplete && (
+        <div className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-6 py-2 shadow-lg flex items-center justify-around">
+          <button
+            type="button"
+            onClick={() => setActiveTab('home')}
+            className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
+              activeTab === 'home' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
+            }`}
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-[10px]">Home</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('hospitals')}
-          className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
-            activeTab === 'hospitals' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
-          }`}
-        >
-          <Building2 className="w-5 h-5" />
-          <span className="text-[10px]">Hospitals</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('hospitals')}
+            className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
+              activeTab === 'hospitals' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
+            }`}
+          >
+            <Building2 className="w-5 h-5" />
+            <span className="text-[10px]">Hospitals</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('profile')}
-          className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
-            activeTab === 'profile' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
-          }`}
-        >
-          <User className="w-5 h-5" />
-          <span className="text-[10px]">Profile</span>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
+            className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
+              activeTab === 'profile' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
+            }`}
+          >
+            <User className="w-5 h-5" />
+            <span className="text-[10px]">Profile</span>
+          </button>
+        </div>
+      )}
 
       {/* ── CURVY FOOTER WAVES (DESKTOP) ── */}
       <QuroxaCurvyFooter className="hidden md:block" />
