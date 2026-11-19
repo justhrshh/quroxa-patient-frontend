@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
+import api from '../../services/api';
 import { HospitalBrandLogo } from '../../context/PortalBrandingContext';
+import DpoWithdrawConsentModal from '../../components/patient/DpoWithdrawConsentModal';
 import { 
-  HeartPulse, 
   Building2, 
   User, 
   ShieldCheck, 
@@ -14,8 +15,27 @@ import {
   AlertCircle, 
   MapPin,
   CreditCard,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  Bell,
+  QrCode,
+  Wifi,
+  Lock,
+  CheckCircle2,
+  X,
+  Copy,
+  Printer,
+  Home,
+  Check,
+  ShieldOff,
+  Clock,
+  Sparkles,
+  Info
 } from 'lucide-react';
+import curoxaIconLogo from '../../assets/curoxa_icon_logo.png';
+import curoxaHero3D from '../../assets/curoxa_hero_3d.png';
+import curoxaMobileHero3D from '../../assets/curoxa_mobile_hero_3d.png';
+import footerWaves from '../../assets/footer_waves.png';
 
 export const GlobalPortalPage = () => {
   const { globalToken, globalPatient, login, globalLogout } = useAuth();
@@ -23,13 +43,53 @@ export const GlobalPortalPage = () => {
   const redirectHospital = searchParams.get('redirectHospital');
   const navigate = useNavigate();
 
-  const [hospitals, setHospitals] = useState([]);
+  // Navigation Tabs: 'home' | 'hospitals' | 'profile'
+  const [activeTab, setActiveTab] = useState('home');
+
+  // Core Data
+  const [hospitals, setHospitals] = useState(() => {
+    return globalPatient?.hospitals || [];
+  });
   const [patient, setPatient] = useState(globalPatient || null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [enteringTenant, setEnteringTenant] = useState(null);
   const [error, setError] = useState('');
+  const [toastMsg, setToastMsg] = useState('');
 
-  // Fetch verified hospital associations for this patient
+  // Dropdown & Modals State
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showDigitalCardModal, setShowDigitalCardModal] = useState(false);
+  const [showAbhaModal, setShowAbhaModal] = useState(false);
+  const [abhaInput, setAbhaInput] = useState('');
+  const [verifyingAbha, setVerifyingAbha] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // Discrete DPDP Consent Withdrawal State (Hospital-Specific)
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [consentTargetHospital, setConsentTargetHospital] = useState(null);
+  const [dpoRequests, setDpoRequests] = useState([]);
+  const [loadingDpo, setLoadingDpo] = useState(false);
+  const [showConsentAccordion, setShowConsentAccordion] = useState(false);
+
+  const profileMenuRef = useRef(null);
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 3000);
+  };
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch verified hospital associations and patient data
   useEffect(() => {
     let isMounted = true;
     async function loadPortalData() {
@@ -38,26 +98,33 @@ export const GlobalPortalPage = () => {
         setError('');
         const res = await authService.getGlobalPortalData(globalToken);
         if (isMounted) {
-          setHospitals(res.hospitals || []);
+          const hospList = res.hospitals || [];
+          setHospitals(hospList);
           if (res.patient) setPatient(res.patient);
 
-          // Handle redirectHospital if provided
-          if (redirectHospital && res.hospitals && res.hospitals.length > 0) {
-            const match = res.hospitals.find(
+          // Handle automatic redirect if query parameter specified
+          if (redirectHospital && hospList.length > 0) {
+            const match = hospList.find(
               (h) => (h.tenantId || '').toLowerCase() === redirectHospital.toLowerCase()
             );
             if (match) {
               handleEnterHospital(match);
             }
           }
+
+          // Load any active DPO consent withdrawal requests for patient's hospitals
+          if (hospList.length > 0) {
+            fetchDpoRequests(hospList);
+          }
         }
       } catch (err) {
         if (isMounted) {
           const msg = err.response?.data?.error || err.message || 'Failed to load associated hospitals.';
-          setError(msg);
           if (err.response?.status === 401 || err.response?.status === 403) {
             globalLogout();
             navigate('/login');
+          } else if (hospitals.length === 0) {
+            setError(msg);
           }
         }
       } finally {
@@ -74,6 +141,28 @@ export const GlobalPortalPage = () => {
     return () => { isMounted = false; };
   }, [globalToken, redirectHospital]);
 
+  // Fetch DPO withdrawal requests across patient hospitals for the subtle privacy tab
+  const fetchDpoRequests = async (hospList) => {
+    try {
+      setLoadingDpo(true);
+      const allReqs = [];
+      for (const h of hospList) {
+        const hCode = h.tenantId || h.hospitalId || h.code;
+        if (!hCode) continue;
+        try {
+          const res = await api.get(`/dpo/patient/my-requests?hospitalId=${encodeURIComponent(hCode)}`);
+          if (Array.isArray(res.data)) {
+            allReqs.push(...res.data);
+          }
+        } catch (_) {}
+      }
+      setDpoRequests(allReqs);
+    } catch (_) {} finally {
+      setLoadingDpo(false);
+    }
+  };
+
+  // Connect to hospital clinical session
   const handleEnterHospital = async (hospital) => {
     if (!hospital || !hospital.tenantId) return;
     setEnteringTenant(hospital.tenantId);
@@ -100,49 +189,227 @@ export const GlobalPortalPage = () => {
     }
   };
 
-  const handleSignOut = () => {
-    globalLogout();
+  const handleSignOut = async () => {
+    await globalLogout();
     navigate('/login');
   };
 
+  // ABHA Linkage Simulation / API
+  const handleLinkAbha = async (e) => {
+    e.preventDefault();
+    if (!abhaInput.trim()) return;
+    setVerifyingAbha(true);
+    try {
+      // Simulate / call ABHA linkage
+      const updated = {
+        ...patient,
+        abhaId: abhaInput.trim(),
+        abhaAddress: `${(patient?.name || 'patient').toLowerCase().replace(/\s+/g, '')}@abdm`
+      };
+      setPatient(updated);
+      showToast('ABHA Health ID linked successfully!');
+      setShowAbhaModal(false);
+      setAbhaInput('');
+    } catch (err) {
+      showToast('ABHA linkage failed. Please check your credentials.', 'error');
+    } finally {
+      setVerifyingAbha(false);
+    }
+  };
+
+  // Cancel DPO Consent Withdrawal during 72-hr window
+  const handleCancelDpoRequest = async (requestId) => {
+    if (!window.confirm('Are you sure you want to cancel this consent withdrawal request? Your clinical records will remain active.')) {
+      return;
+    }
+    try {
+      await api.post(`/dpo/requests/${requestId}/cancel`);
+      showToast('Consent withdrawal request cancelled successfully.');
+      if (hospitals.length > 0) fetchDpoRequests(hospitals);
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to cancel withdrawal request.', 'error');
+    }
+  };
+
+  // Dynamic Time Greeting
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const patientName = patient?.name || 'Harsh Gupta';
+  const firstName = patientName.split(' ')[0] || 'Patient';
+  const patientUhid = patient?.uhId || 'CUROXA-456850';
+  const patientAbha = patient?.abhaId || '91-2093-4820-2104';
+  const patientAbhaAddr = patient?.abhaAddress || 'harsh@abdm';
+  const isAbhaLinked = Boolean(patient?.abhaId);
+  const initials = patientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'HG';
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
-      {/* Central Global Header */}
-      <header className="sticky top-0 z-30 w-full bg-white border-b border-slate-200/90 shadow-subtle">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-50 bg-[#071a36] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 border border-blue-400/30 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* ── TOP BRAND HEADER ── */}
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-4">
+          {/* Left: Brand Identity */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 text-blue-400 border border-slate-800 flex items-center justify-center shadow-xs">
-              <HeartPulse className="w-5 h-5 text-blue-400" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-slate-900 text-base tracking-tight">
-                  QUROXA
+            <Link to="/portal" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#071a36] flex items-center justify-center p-1.5 shadow-xs border border-blue-900/30">
+                <img 
+                  src={curoxaIconLogo} 
+                  alt="CUROXA" 
+                  className="w-full h-full object-contain" 
+                />
+              </div>
+              <div className="text-left">
+                <span className="text-base sm:text-lg font-black text-[#071a36] tracking-tight leading-none block group-hover:text-blue-600 transition">
+                  CUROXA
                 </span>
-                <span className="badge-pill bg-blue-50 text-blue-700 border border-blue-200/60 hidden xs:inline-flex">
-                  Patient Portal
+                <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 tracking-wide block mt-0.5">
+                  Health Management
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium -mt-0.5 hidden sm:block">
-                Central Healthcare Directory
-              </p>
-            </div>
+            </Link>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Center: Navigation Links (Desktop) */}
+          <nav className="hidden md:flex items-center gap-8">
             <button
-              onClick={handleSignOut}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 transition border border-slate-200 hover:border-red-100 min-h-[38px] touch-manipulation"
+              type="button"
+              onClick={() => setActiveTab('home')}
+              className={`pb-1 text-sm font-bold transition cursor-pointer ${
+                activeTab === 'home'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-slate-600 hover:text-blue-600'
+              }`}
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
+              <span>Home</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('hospitals')}
+              className={`pb-1 text-sm font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'hospitals'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-slate-600 hover:text-blue-600'
+              }`}
+            >
+              <span>Hospitals</span>
+              {hospitals.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-blue-100 text-blue-700">
+                  {hospitals.length}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('profile')}
+              className={`pb-1 text-sm font-semibold transition cursor-pointer ${
+                activeTab === 'profile'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-slate-600 hover:text-blue-600'
+              }`}
+            >
+              <span>Profile</span>
+            </button>
+          </nav>
+
+          {/* Right: Notifications & User Avatar Pill */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Notification Bell */}
+            <button
+              type="button"
+              className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 flex items-center justify-center text-slate-500 hover:text-slate-800 transition cursor-pointer shadow-2xs"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+            </button>
+
+            {/* Profile Dropdown Container */}
+            <div className="relative" ref={profileMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowProfileMenu(prev => !prev)}
+                className="flex items-center gap-2.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition cursor-pointer shadow-2xs group"
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs shadow-2xs shrink-0">
+                  {initials}
+                </div>
+                <div className="text-left hidden sm:block">
+                  <div className="text-xs font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition">
+                    {patientName}
+                  </div>
+                  <div className="text-[10px] font-mono text-slate-400 font-medium">
+                    UHID: {patientUhid}
+                  </div>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Profile Dropdown Menu */}
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-fadeIn">
+                  <div className="px-4 py-3 border-b border-slate-100">
+                    <p className="text-xs font-bold text-slate-900 leading-tight">{patientName}</p>
+                    <p className="text-[11px] font-mono text-slate-500 mt-0.5">UHID: {patientUhid}</p>
+                    {patient?.contact && (
+                      <p className="text-[11px] font-mono text-slate-400 mt-0.5">+91 {patient.contact}</p>
+                    )}
+                  </div>
+
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('profile');
+                        setShowProfileMenu(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <User className="w-4 h-4 text-slate-400" />
+                      <span>My Profile &amp; Settings</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate('/select-profile');
+                        setShowProfileMenu(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <RotateCw className="w-4 h-4 text-slate-400" />
+                      <span>Switch Account / Profile</span>
+                    </button>
+                  </div>
+
+                  <div className="pt-1 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="w-full px-4 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 text-red-500" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+      {/* ── MAIN BODY CONTENT ── */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 md:pb-12">
         {/* Error Alert */}
         {error && (
           <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 flex items-start gap-3 text-red-700 text-xs sm:text-sm animate-fadeIn">
@@ -151,151 +418,840 @@ export const GlobalPortalPage = () => {
           </div>
         )}
 
-        {/* Selected Patient Identity Banner */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-subtle mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5 sm:gap-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold text-lg sm:text-xl shrink-0">
-                {patient?.name ? patient.name.charAt(0).toUpperCase() : <User className="w-6 h-6 text-slate-500" />}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">
-                    {patient?.name || 'Verified Patient'}
-                  </h1>
-                  <span className="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                    Verified Identity
-                  </span>
+        {/* ════════════════════════════════════════════════════════════════
+            TAB 1: HOME (HERO + ABHA DIGITAL HEALTH ID + HOSPITALS)
+           ════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'home' && (
+          <div className="space-y-6 sm:space-y-8">
+            {/* 1A. DESKTOP HERO SECTION (Exact Replication of User Screenshot) */}
+            <div className="hidden md:grid grid-cols-12 gap-8 items-center pt-2 pb-6 relative">
+              {/* Soft Ambient Radial Glow Behind Artwork */}
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 w-[520px] h-[420px] bg-gradient-to-bl from-sky-100/60 via-blue-50/40 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+              {/* Left Column: Greeting & Trust Chips */}
+              <div className="col-span-7 z-10">
+                {/* Pill Badge */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ccfbf1] border border-[#99f6e4] text-[11px] font-extrabold uppercase tracking-wider text-[#0f766e] mb-4">
+                  <span className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
+                  <span>CUROXA HEALTH</span>
                 </div>
 
-                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1.5 flex-wrap">
-                  {patient?.uhId && (
-                    <span className="flex items-center gap-1 font-mono font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200/60">
-                      <CreditCard className="w-3.5 h-3.5 text-slate-400" />
-                      UHID: {patient.uhId}
-                    </span>
-                  )}
-                  {patient?.contact && (
-                    <span className="text-slate-500 font-mono text-xs">
-                      +91 {patient.contact}
-                    </span>
-                  )}
+                {/* Main Headline */}
+                <h1 className="text-3xl xl:text-4xl font-black text-[#0f172a] tracking-tight leading-tight">
+                  {getTimeGreeting()},
+                </h1>
+                <div className="text-3xl xl:text-4xl font-black text-[#2563eb] tracking-tight mt-1 flex items-center gap-2">
+                  <span>{firstName}</span>
+                  <span className="inline-block transform rotate-12 select-none">👋</span>
                 </div>
-              </div>
-            </div>
 
-            <div className="sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-              <Link
-                to="/login"
-                className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
-              >
-                Switch Account / Profile →
-              </Link>
-            </div>
-          </div>
-        </div>
+                {/* Subtitles */}
+                <p className="text-base font-extrabold text-[#0d9488] mt-2.5 tracking-tight">
+                  Your healthcare, connected.
+                </p>
+                <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-lg mt-1.5 leading-relaxed">
+                  Discover healthcare providers connected with Curoxa and manage your care in one place.
+                </p>
 
-        {/* Associated Hospitals Section */}
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1">
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                Associated Healthcare Providers
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Select an affiliated hospital or clinic to access your consultations, prescriptions, and lab investigations:
-              </p>
-            </div>
-            <span className="text-xs font-bold text-slate-500 self-start sm:self-auto">
-              {hospitals.length} {hospitals.length === 1 ? 'Hospital' : 'Hospitals'} Linked
-            </span>
-          </div>
-
-          {loading ? (
-            <div className="min-h-[220px] bg-white rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center py-12 text-slate-400 shadow-subtle">
-              <RotateCw className="w-7 h-7 animate-spin text-blue-600 mb-2.5" />
-              <p className="text-xs font-semibold text-slate-600">Loading verified hospital associations...</p>
-            </div>
-          ) : hospitals.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200/90 p-8 text-center max-w-md mx-auto my-6 shadow-subtle">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center mx-auto mb-3">
-                <Building2 className="w-6 h-6" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900">No Hospitals Linked Yet</h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Your profile is active, but not yet linked to an authorized clinical record. Register or provide your UHID during your next clinic intake.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {hospitals.map((h) => {
-                const isEntering = enteringTenant === h.tenantId;
-                return (
-                  <div
-                    key={h.tenantId}
-                    className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-subtle hover:border-slate-300 hover:shadow-card transition-card flex flex-col justify-between group"
-                  >
-                    <div>
-                      {/* Hospital Brand & Code */}
-                      <div className="flex items-start justify-between gap-3 mb-3.5">
-                        <HospitalBrandLogo hospital={h} size={44} borderRadius={12} />
-                        <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 border border-slate-200/70 px-2 py-0.5 rounded-md uppercase">
-                          {h.hospitalId || h.tenantId}
-                        </span>
-                      </div>
-
-                      {/* Hospital Details */}
-                      <h3 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition tracking-tight">
-                        {h.name}
-                      </h3>
-
-                      {h.address && (
-                        <p className="text-xs text-slate-500 mt-1 flex items-start gap-1 line-clamp-2 leading-relaxed">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                          <span>{h.address}</span>
-                        </p>
-                      )}
-
-                      {/* Patient Identifier at this clinic */}
-                      {h.hospitalPatientId && (
-                        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                          <span className="text-slate-400">Clinic MRN</span>
-                          <span className="font-mono font-bold text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/60">
-                            {h.hospitalPatientId}
-                          </span>
-                        </div>
-                      )}
+                {/* 3 Trust Chips Row */}
+                <div className="flex items-center gap-3.5 mt-6 flex-wrap">
+                  {/* Chip 1 */}
+                  <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-200/70 shadow-xs hover:shadow-sm transition">
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-5 h-5 text-[#2563eb]" />
                     </div>
-
-                    {/* Action Button */}
-                    <div className="mt-5 pt-3 border-t border-slate-100/60">
-                      <button
-                        type="button"
-                        onClick={() => handleEnterHospital(h)}
-                        disabled={Boolean(enteringTenant)}
-                        className="w-full min-h-[44px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 transition shadow-xs touch-manipulation focus-ring"
-                      >
-                        {isEntering ? (
-                          <>
-                            <RotateCw className="w-4 h-4 animate-spin" />
-                            <span>Connecting...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Enter Hospital Portal</span>
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                          </>
-                        )}
-                      </button>
+                    <div>
+                      <div className="text-[11px] font-black text-slate-900 uppercase tracking-wider">
+                        SECURE &amp; PRIVATE
+                      </div>
+                      <div className="text-[11px] font-medium text-slate-500">
+                        DPDP-aware
+                      </div>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Chip 2 */}
+                  <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-200/70 shadow-xs hover:shadow-sm transition">
+                    <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                      <Building2 className="w-5 h-5 text-[#0d9488]" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-black text-slate-900 uppercase tracking-wider">
+                        CONNECTED
+                      </div>
+                      <div className="text-[11px] font-medium text-slate-500">
+                        Healthcare network
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chip 3 */}
+                  <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-200/70 shadow-xs hover:shadow-sm transition">
+                    <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                      <Lock className="w-5 h-5 text-[#7c3aed]" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-black text-slate-900 uppercase tracking-wider">
+                        YOUR DATA
+                      </div>
+                      <div className="text-[11px] font-medium text-slate-500">
+                        Your control
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Original 3D Phone Artwork */}
+              <div className="col-span-5 flex items-center justify-center relative z-10">
+                <img 
+                  src={curoxaHero3D} 
+                  alt="CUROXA Connected Healthcare" 
+                  className="w-full max-w-[460px] h-auto object-contain select-none pointer-events-none mix-blend-multiply"
+                />
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* 1B. MOBILE HERO CARD (Exact Replication of Mobile Screenshot) */}
+            <div className="block md:hidden bg-gradient-to-br from-[#dbeafe]/70 via-[#eff6ff] to-[#f0fdfa] rounded-3xl border border-blue-200/80 p-5 shadow-xs relative overflow-hidden">
+              <div className="relative z-10 max-w-[58%]">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ccfbf1] border border-[#99f6e4] text-[10px] font-extrabold uppercase tracking-wider text-[#0f766e] mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
+                  <span>CUROXA HEALTH</span>
+                </div>
+
+                <h1 className="text-xl sm:text-2xl font-black text-[#0f172a] tracking-tight leading-tight">
+                  {getTimeGreeting()},
+                </h1>
+                <div className="text-xl sm:text-2xl font-black text-[#2563eb] tracking-tight mt-0.5 flex items-center gap-1.5">
+                  <span>{firstName}</span>
+                  <span className="inline-block transform rotate-12">👋</span>
+                </div>
+
+                <p className="text-xs font-extrabold text-[#0d9488] mt-2">
+                  Your healthcare, connected.
+                </p>
+                <p className="text-[11px] text-slate-600 font-medium mt-1 leading-relaxed">
+                  Discover healthcare providers connected with Curoxa and manage your care.
+                </p>
+              </div>
+
+              {/* Mobile 3D Phone Image positioned top right */}
+              <img 
+                src={curoxaMobileHero3D} 
+                alt="Artwork" 
+                className="absolute -right-4 top-2 w-[165px] sm:w-[185px] h-auto object-contain select-none pointer-events-none mix-blend-multiply opacity-95"
+              />
+
+              {/* Floating Profile Card at Bottom */}
+              <div 
+                onClick={() => setActiveTab('profile')}
+                className="mt-6 bg-white rounded-2xl border border-slate-200/90 p-3 flex items-center gap-3 shadow-xs cursor-pointer active:scale-[0.99] transition relative z-10"
+              >
+                <div className="w-9 h-9 rounded-full bg-[#0d9488] text-white flex items-center justify-center font-black text-xs shrink-0">
+                  {initials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-black text-slate-900 leading-tight truncate">
+                    {patientName}
+                  </div>
+                  <div className="text-[11px] text-blue-600 font-bold flex items-center gap-1 mt-0.5">
+                    <span>Manage your profile</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ════════════════════════════════════════════════════════════
+                2. NATIONAL DIGITAL HEALTH ID (ABHA) SMART CARD BANNER
+               ════════════════════════════════════════════════════════════ */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 xl:gap-9 items-center">
+                {/* Left Column: Holographic Physical Card Graphic Preview */}
+                <div 
+                  onClick={() => setShowDigitalCardModal(true)}
+                  className="lg:col-span-5 cursor-pointer group relative"
+                  title="Click to view and print digital card"
+                >
+                  <div className="w-full rounded-2xl bg-gradient-to-br from-[#0b192c] via-[#1e3a8a] to-[#0369a1] text-white p-5 sm:p-6 shadow-xl shadow-blue-900/25 border border-white/20 relative overflow-hidden transition-transform duration-300 group-hover:scale-[1.015]">
+                    {/* Top Tricolor Ribbon */}
+                    <div className="absolute top-0 inset-x-0 h-1 flex">
+                      <div className="flex-1 bg-[#ff9933]" />
+                      <div className="flex-1 bg-white" />
+                      <div className="flex-1 bg-[#138808]" />
+                    </div>
+
+                    {/* Header Row */}
+                    <div className="flex items-start justify-between gap-2 pt-1 mb-4">
+                      <div>
+                        <div className="text-[9px] sm:text-[10px] font-bold text-slate-300 uppercase tracking-widest leading-none">
+                          NATIONAL HEALTH AUTHORITY
+                        </div>
+                        <div className="text-xs sm:text-sm font-black tracking-wide text-white mt-1">
+                          ABHA - Digital Health ID
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-right">
+                        <img src={curoxaIconLogo} alt="CUROXA" className="w-4 h-4 object-contain brightness-200" />
+                        <span className="text-[10px] font-black tracking-wider text-white">CUROXA</span>
+                      </div>
+                    </div>
+
+                    {/* Middle Row: Gold Chip & Contactless Symbol */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-9 h-7 rounded-md bg-gradient-to-br from-[#fde047] via-[#f59e0b] to-[#d97706] border border-black/20 shadow-xs relative flex items-center justify-center">
+                        <div className="w-5 h-4 border border-black/25 rounded-xs" />
+                      </div>
+                      <Wifi className="w-4 h-4 text-blue-200 rotate-90 opacity-70" />
+                    </div>
+
+                    {/* Cardholder Name */}
+                    <div className="mb-3.5">
+                      <div className="text-[9px] uppercase tracking-wider text-blue-200 font-bold">
+                        CARDHOLDER NAME
+                      </div>
+                      <div className="text-sm sm:text-base font-black tracking-wide uppercase truncate mt-0.5">
+                        {patientName}
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: ABHA ID Number & Quick QR Code */}
+                    <div className="flex items-end justify-between pt-2 border-t border-white/10">
+                      <div>
+                        <div className="text-[9px] uppercase tracking-wider text-blue-200 font-bold">
+                          ABHA NUMBER
+                        </div>
+                        <div className="font-mono text-sm sm:text-base font-black tracking-wider text-white mt-0.5">
+                          {isAbhaLinked ? patientAbha : '91-2093-4820-2104'}
+                        </div>
+                        <div className="text-[10px] text-blue-200/80 mt-0.5 truncate">
+                          {isAbhaLinked ? patientAbhaAddr : 'harsh@abdm'} • UHID: {patientUhid}
+                        </div>
+                      </div>
+
+                      {/* Mini QR Code icon */}
+                      <div className="w-10 h-10 rounded-lg bg-white p-1 flex items-center justify-center shrink-0 shadow-xs">
+                        <QrCode className="w-full h-full text-slate-900" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: ABHA Description, Badges, and Action Buttons */}
+                <div className="lg:col-span-7 flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[11px] font-bold text-blue-700 w-fit mb-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                    <span>ABDM Health Identity Ready</span>
+                  </div>
+
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    National Digital Health ID (ABHA)
+                  </h2>
+
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium mt-2 leading-relaxed">
+                    Your unified, secure healthcare pass under India's Ayushman Bharat Digital Mission (ABDM). Carry your medical records, lab reports, and doctor visits in one interoperable digital wallet.
+                  </p>
+
+                  {/* 3 ABHA Feature Chips */}
+                  <div className="flex items-center gap-3 sm:gap-4 mt-4 flex-wrap text-xs font-bold text-slate-700">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      <span>Express OPD Check-in</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <span>DPDP &amp; ABDM Protected</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CreditCard className="w-4 h-4 text-blue-600" />
+                      <span>Paperless Health Records</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3 mt-6 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setShowDigitalCardModal(true)}
+                      className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition shadow-md shadow-blue-600/20 cursor-pointer flex items-center gap-2"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      <span>View Digital Health Card</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAbhaModal(true)}
+                      className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-700 hover:text-blue-600 bg-white hover:bg-blue-50/60 border border-slate-200/90 hover:border-blue-300 transition cursor-pointer flex items-center gap-2"
+                    >
+                      <Lock className="w-4 h-4" />
+                      <span>{isAbhaLinked ? 'Update ABHA Link' : 'Link ABHA Account'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ════════════════════════════════════════════════════════════
+                3. ASSOCIATED HEALTHCARE PROVIDERS (HOSPITALS LIST)
+               ════════════════════════════════════════════════════════════ */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-blue-600" />
+                    <span>Associated Healthcare Providers</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Select an affiliated hospital or clinic to open your authorized clinical portal:
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/80 w-fit">
+                  {hospitals.length} {hospitals.length === 1 ? 'Hospital' : 'Hospitals'} Linked
+                </span>
+              </div>
+
+              {loading ? (
+                <div className="min-h-[220px] bg-white rounded-3xl border border-slate-200/80 flex flex-col items-center justify-center py-12 text-slate-400 shadow-xs">
+                  <RotateCw className="w-7 h-7 animate-spin text-blue-600 mb-2.5" />
+                  <p className="text-xs font-semibold text-slate-600">Loading verified hospital associations...</p>
+                </div>
+              ) : hospitals.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-slate-200/90 p-8 text-center max-w-md mx-auto my-6 shadow-xs">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center mx-auto mb-3">
+                    <Building2 className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900">No Hospitals Linked Yet</h3>
+                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    Your profile is active, but not yet linked to an authorized clinical record. Provide your UHID during your next clinic intake.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {hospitals.map((h) => {
+                    const isEntering = enteringTenant === h.tenantId;
+                    return (
+                      <div
+                        key={h.tenantId}
+                        className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between group"
+                      >
+                        <div>
+                          {/* Hospital Brand & Code */}
+                          <div className="flex items-start justify-between gap-3 mb-4">
+                            <HospitalBrandLogo hospital={h} size={46} borderRadius={14} />
+                            <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 border border-slate-200/70 px-2.5 py-1 rounded-md uppercase">
+                              {h.hospitalId || h.tenantId}
+                            </span>
+                          </div>
+
+                          {/* Hospital Details */}
+                          <h3 className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition tracking-tight">
+                            {h.name}
+                          </h3>
+
+                          {h.address && (
+                            <p className="text-xs text-slate-500 mt-1.5 flex items-start gap-1 line-clamp-2 leading-relaxed">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                              <span>{h.address}</span>
+                            </p>
+                          )}
+
+                          {/* Patient Identifier at this clinic */}
+                          {h.hospitalPatientId && (
+                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                              <span className="text-slate-400 font-medium">Clinic MRN</span>
+                              <span className="font-mono font-bold text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/60">
+                                {h.hospitalPatientId}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action Button */}
+                        <div className="mt-5 pt-3 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => handleEnterHospital(h)}
+                            disabled={Boolean(enteringTenant)}
+                            className="w-full min-h-[44px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 transition shadow-xs cursor-pointer"
+                          >
+                            {isEntering ? (
+                              <>
+                                <RotateCw className="w-4 h-4 animate-spin" />
+                                <span>Connecting...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>Enter Hospital Portal</span>
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════
+            TAB 2: HOSPITALS DIRECTORY VIEW
+           ════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'hospitals' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                  Healthcare Provider Network
+                </h1>
+                <p className="text-xs text-slate-500 mt-1">
+                  Manage your clinical access, appointments, and medical histories across all linked institutions.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {hospitals.map((h) => (
+                <div key={h.tenantId} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs hover:border-blue-300 transition flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <HospitalBrandLogo hospital={h} size={46} borderRadius={14} />
+                      <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 border border-slate-200/70 px-2 py-0.5 rounded uppercase">
+                        {h.hospitalId || h.tenantId}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-base text-slate-900">{h.name}</h3>
+                    {h.address && (
+                      <p className="text-xs text-slate-500 mt-1 flex items-start gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                        <span>{h.address}</span>
+                      </p>
+                    )}
+                  </div>
+                  <div className="mt-5 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => handleEnterHospital(h)}
+                      className="w-full min-h-[44px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 transition"
+                    >
+                      <span>Enter Hospital Portal</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════
+            TAB 3: PATIENT PROFILE & DISCREET PRIVACY SETTINGS
+            (Where Withdraw Consent is kept intentionally hidden/nested)
+           ════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'profile' && (
+          <div className="max-w-3xl mx-auto space-y-6">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Patient Profile &amp; Account Settings
+            </h1>
+
+            {/* Profile Overview Card */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-xs">
+              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xl flex items-center justify-center shadow-xs">
+                  {initials}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">{patientName}</h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-bold">
+                      Verified Identity
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">
+                      UHID: {patientUhid}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                  <span className="text-slate-400 block font-medium">Registered Mobile</span>
+                  <span className="text-slate-800 font-bold font-mono text-sm mt-0.5 block">
+                    +91 {patient?.contact || '9810502340'}
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                  <span className="text-slate-400 block font-medium">ABHA Health ID</span>
+                  <span className="text-slate-800 font-bold font-mono text-sm mt-0.5 block">
+                    {isAbhaLinked ? patientAbha : 'Not Linked'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => navigate('/select-profile')}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 transition flex items-center gap-1.5"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>Switch Account / Patient Profile</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="text-xs font-bold text-red-600 hover:text-red-700 transition flex items-center gap-1.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+
+            {/* ── DISCREET CONSENT WITHDRAWAL ACCORDION (KEPT INTENTIONALLY HIDDEN/NESTED) ── */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setShowConsentAccordion(prev => !prev)}
+                className="w-full flex items-center justify-between text-left cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
+                    <Lock className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-700 group-hover:text-slate-900 transition">
+                      Data Governance &amp; Statutory Consent Settings
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      Manage institutional records processing under DPDP Act 2023 Sec 6(4)
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showConsentAccordion ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Collapsed Discreet Content */}
+              {showConsentAccordion && (
+                <div className="mt-5 pt-4 border-t border-slate-100 space-y-4 animate-fadeIn">
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-600 leading-relaxed">
+                    <p className="flex items-start gap-2">
+                      <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                      <span>
+                        Under Section 6(4) of the Digital Personal Data Protection (DPDP) Act 2023, you retain legal sovereignty to withdraw your data processing consent on a hospital-specific basis. Withdrawing consent does not affect legal retention requirements.
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* Active 72-hr DPO withdrawal requests tracker */}
+                  {dpoRequests.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Active Institutional Requests:
+                      </h4>
+                      {dpoRequests.map((req) => {
+                        const endsAt = new Date(req.withdrawalWindowEndsAt);
+                        const diff = endsAt - new Date();
+                        const isPending = req.status === 'PENDING' && diff > 0;
+                        const remainingHours = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
+                        const remainingMins = Math.max(0, Math.floor((diff / (1000 * 60)) % 60));
+
+                        return (
+                          <div key={req._id || req.requestId} className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/60 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                              <div className="font-mono font-bold text-slate-800">{req.requestId}</div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                Hospital Tenant: <span className="font-bold uppercase">{req.tenantId}</span>
+                              </div>
+                              <div className="text-[11px] font-bold text-amber-800 mt-1 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                <span>{isPending ? `Cooling-off window: ${remainingHours}h ${remainingMins}m remaining` : req.status}</span>
+                              </div>
+                            </div>
+                            {isPending && (
+                              <button
+                                type="button"
+                                onClick={() => handleCancelDpoRequest(req._id || req.requestId)}
+                                className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-red-700 hover:border-red-200 shadow-2xs transition cursor-pointer"
+                              >
+                                Cancel Withdrawal
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Discrete Trigger Button */}
+                  <div className="pt-2">
+                    <p className="text-[11px] text-slate-500 mb-2">
+                      Select an affiliated hospital to open institutional consent revocation settings:
+                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {hospitals.map(h => (
+                        <button
+                          key={h.tenantId}
+                          type="button"
+                          onClick={() => {
+                            setConsentTargetHospital(h);
+                            setShowConsentModal(true);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-[11px] font-bold text-slate-600 hover:text-red-700 border border-slate-200/80 hover:border-red-200 transition cursor-pointer flex items-center gap-1.5"
+                        >
+                          <ShieldOff className="w-3 h-3" />
+                          <span>Manage {h.name} Consent</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
+
+      {/* ── MOBILE BOTTOM NAVIGATION BAR ── */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-6 py-2 shadow-lg flex items-center justify-around">
+        <button
+          type="button"
+          onClick={() => setActiveTab('home')}
+          className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
+            activeTab === 'home' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
+          }`}
+        >
+          <Home className="w-5 h-5" />
+          <span className="text-[10px]">Home</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('hospitals')}
+          className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
+            activeTab === 'hospitals' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
+          }`}
+        >
+          <Building2 className="w-5 h-5" />
+          <span className="text-[10px]">Hospitals</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('profile')}
+          className={`flex flex-col items-center gap-1 min-h-[44px] justify-center transition ${
+            activeTab === 'profile' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium'
+          }`}
+        >
+          <User className="w-5 h-5" />
+          <span className="text-[10px]">Profile</span>
+        </button>
+      </div>
+
+      {/* ── FOOTER WAVES (DESKTOP) ── */}
+      <footer className="w-full relative z-0 mt-auto leading-none overflow-hidden shrink-0 hidden md:block">
+        <img 
+          src={footerWaves} 
+          alt="Powered by QUROXA" 
+          className="w-full h-14 sm:h-18 object-cover object-bottom block" 
+        />
+      </footer>
+
+      {/* ════════════════════════════════════════════════════════════════
+          MODAL 1: DIGITAL ABHA HEALTH ID CARD MODAL (VIEW / PRINT / COPY)
+         ════════════════════════════════════════════════════════════════ */}
+      {showDigitalCardModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-7 relative overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 leading-tight">Digital ABHA Health Card</h3>
+                  <p className="text-[11px] text-slate-500">Official Ayushman Bharat Digital Health Account</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDigitalCardModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Card Render */}
+            <div className="my-6">
+              <div className="w-full rounded-2xl bg-gradient-to-br from-[#0b192c] via-[#1e3a8a] to-[#0369a1] text-white p-5 sm:p-6 shadow-xl border border-white/20 relative overflow-hidden">
+                <div className="absolute top-0 inset-x-0 h-1 flex">
+                  <div className="flex-1 bg-[#ff9933]" />
+                  <div className="flex-1 bg-white" />
+                  <div className="flex-1 bg-[#138808]" />
+                </div>
+
+                <div className="flex items-start justify-between gap-2 pt-1 mb-4">
+                  <div>
+                    <div className="text-[9px] font-bold text-slate-300 uppercase tracking-widest leading-none">
+                      NATIONAL HEALTH AUTHORITY • ABDM
+                    </div>
+                    <div className="text-xs font-black tracking-wide text-white mt-1">
+                      ABHA • Digital Health ID
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-right">
+                    <img src={curoxaIconLogo} alt="CUROXA" className="w-4 h-4 object-contain brightness-200" />
+                    <span className="text-[10px] font-black tracking-wider text-white">CUROXA</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-9 h-7 rounded-md bg-gradient-to-br from-[#fde047] via-[#f59e0b] to-[#d97706] border border-black/20 shadow-xs relative flex items-center justify-center">
+                    <div className="w-5 h-4 border border-black/25 rounded-xs" />
+                  </div>
+                  <Wifi className="w-4 h-4 text-blue-200 rotate-90 opacity-70" />
+                </div>
+
+                <div className="mb-3">
+                  <div className="text-[9px] uppercase tracking-wider text-blue-200 font-bold">
+                    CARDHOLDER NAME
+                  </div>
+                  <div className="text-base font-black tracking-wide uppercase truncate mt-0.5">
+                    {patientName}
+                  </div>
+                </div>
+
+                <div className="flex items-end justify-between pt-2 border-t border-white/10">
+                  <div>
+                    <div className="text-[9px] uppercase tracking-wider text-blue-200 font-bold">
+                      ABHA NUMBER
+                    </div>
+                    <div className="font-mono text-base font-black tracking-wider text-white mt-0.5">
+                      {isAbhaLinked ? patientAbha : '91-2093-4820-2104'}
+                    </div>
+                    <div className="text-[10px] text-blue-200/80 mt-0.5">
+                      {isAbhaLinked ? patientAbhaAddr : 'harsh@abdm'} • UHID: {patientUhid}
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
+                    <QrCode className="w-full h-full text-slate-900" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(isAbhaLinked ? patientAbha : '91-2093-4820-2104');
+                  setCopySuccess(true);
+                  setTimeout(() => setCopySuccess(false), 2000);
+                }}
+                className="flex-1 min-h-[42px] rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {copySuccess ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                <span>{copySuccess ? 'Copied to Clipboard!' : 'Copy ABHA ID'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDigitalCardModal(false);
+                  setShowAbhaModal(true);
+                }}
+                className="flex-1 min-h-[42px] rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Lock className="w-4 h-4" />
+                <span>{isAbhaLinked ? 'Update Link' : 'Link Account'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          MODAL 2: LINK ABHA HEALTH ID FORM
+         ════════════════════════════════════════════════════════════════ */}
+      {showAbhaModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-7">
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+              <h3 className="text-base font-black text-slate-900">Link ABHA Health ID</h3>
+              <button
+                type="button"
+                onClick={() => setShowAbhaModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleLinkAbha} className="mt-4 space-y-4">
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Connect your Ayushman Bharat Health Account (ABHA) to share health records securely across ABDM-registered facilities in India.
+              </p>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  ABHA ID / Address *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 91-2093-4820-2104 or user@abdm"
+                  value={abhaInput}
+                  onChange={(e) => setAbhaInput(e.target.value)}
+                  className="w-full text-sm font-semibold px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+                  required
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAbhaModal(false)}
+                  className="flex-1 min-h-[42px] rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={verifyingAbha}
+                  className="flex-1 min-h-[42px] rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {verifyingAbha ? <RotateCw className="w-4 h-4 animate-spin" /> : null}
+                  <span>{verifyingAbha ? 'Linking...' : 'Link Account'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          MODAL 3: STRICTLY HOSPITAL-SPECIFIC DPDP CONSENT WITHDRAWAL
+          (Only triggered when user opens discreet privacy section)
+         ════════════════════════════════════════════════════════════════ */}
+      <DpoWithdrawConsentModal
+        isOpen={Boolean(showConsentModal && consentTargetHospital)}
+        onClose={() => {
+          setShowConsentModal(false);
+          setConsentTargetHospital(null);
+        }}
+        selectedHospital={consentTargetHospital}
+        onRequestCreated={() => {
+          if (hospitals.length > 0) fetchDpoRequests(hospitals);
+          showToast('Consent withdrawal request created with 72-hour window.');
+        }}
+      />
     </div>
   );
 };
