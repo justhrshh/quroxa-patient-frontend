@@ -5,6 +5,7 @@ import authService from '../../services/authService';
 import api from '../../services/api';
 import { HospitalBrandLogo } from '../../context/PortalBrandingContext';
 import DpoWithdrawConsentModal from '../../components/patient/DpoWithdrawConsentModal';
+import { DesignerHospitalCard } from '../../components/patient/DesignerHospitalCard';
 import { 
   Building2, 
   User, 
@@ -56,9 +57,9 @@ export const GlobalPortalPage = () => {
   const navigate = useNavigate();
 
   // Navigation Tabs: 'home' | 'hospitals' | 'profile'
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'home');
   // Hospital Sub-Tab: 'linked' | 'discover'
-  const [hospitalSubTab, setHospitalSubTab] = useState('linked');
+  const [hospitalSubTab, setHospitalSubTab] = useState(() => searchParams.get('subtab') || 'linked');
 
   // Core Data
   const [hospitals, setHospitals] = useState(() => {
@@ -881,113 +882,15 @@ export const GlobalPortalPage = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {hospitals.map((h, idx) => {
-                        const isEntering = enteringTenant === (h.tenantId || h.code);
-                        const bannerGradients = [
-                          'from-[#0b192c] via-[#1e3a8a] to-[#0284c7]',
-                          'from-[#042f2e] via-[#0d9488] to-[#06b6d4]',
-                          'from-[#1e1b4b] via-[#4338ca] to-[#3b82f6]',
-                          'from-[#18181b] via-[#27272a] to-[#0284c7]'
-                        ];
-                        const bannerGrad = bannerGradients[idx % bannerGradients.length];
-
-                        return (
-                          <div
-                            key={h.tenantId || h.code || idx}
-                            className="bg-white rounded-[26px] border border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group relative"
-                          >
-                            {/* Top Context Banner */}
-                            <div className={`h-20 bg-gradient-to-r ${bannerGrad} p-4 flex items-start justify-between relative overflow-hidden`}>
-                              <div className="absolute right-0 top-0 opacity-15 pointer-events-none transform translate-x-2 -translate-y-2">
-                                <svg width="100" height="80" viewBox="0 0 100 80" fill="white">
-                                  <rect x="40" y="10" width="20" height="60" rx="4" />
-                                  <rect x="20" y="30" width="60" height="20" rx="4" />
-                                </svg>
-                              </div>
-
-                              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-bold text-white z-10">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                <span>Active Network Partner</span>
-                              </div>
-
-                              <span className="text-[10px] font-mono font-bold text-white/90 bg-black/25 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-md uppercase z-10">
-                                {h.hospitalId || h.tenantId || h.code}
-                              </span>
-                            </div>
-
-                            {/* Card Content Area */}
-                            <div className="p-5 pt-0 flex-1 flex flex-col justify-between">
-                              <div>
-                                {/* Floating Dynamic Logo Badge Overlapping Banner */}
-                                <div className="flex items-end justify-between -mt-8 mb-3">
-                                  <div className="p-1 bg-white rounded-2xl shadow-md border-2 border-white inline-block">
-                                    <HospitalBrandLogo hospital={h} size={50} borderRadius={12} fontSize={20} />
-                                  </div>
-                                  {/* Mandatory Phase 2: YOUR CLINIC Badge */}
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                    <span>YOUR CLINIC</span>
-                                  </span>
-                                </div>
-
-                                {/* Clinic Title */}
-                                <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition tracking-tight leading-snug">
-                                  {h.name}
-                                </h3>
-
-                                {/* Location / Address */}
-                                <p className="text-xs text-slate-500 mt-1 flex items-start gap-1 line-clamp-1">
-                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                                  <span>{h.address || [h.city, h.state, h.pincode].filter(Boolean).join(', ') || 'Address on file'}</span>
-                                </p>
-
-                                {/* Clinical Features & Capabilities Chips */}
-                                <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
-                                    ⚡ Express OPD
-                                  </span>
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                    📄 ABDM Prescriptions
-                                  </span>
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100">
-                                    🔬 Lab Reports
-                                  </span>
-                                </div>
-
-                                {/* Patient Clinical Identifier */}
-                                <div className="mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                                  <span className="text-slate-500 font-medium text-[11px]">Clinic MRN</span>
-                                  <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
-                                    {h.hospitalPatientId || h.clinicMrn || 'PAT-RECORD'}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Enter Action Button */}
-                              <div className="mt-5 pt-3 border-t border-slate-100">
-                                <button
-                                  type="button"
-                                  onClick={() => handleEnterHospital(h)}
-                                  disabled={Boolean(enteringTenant)}
-                                  className="w-full min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] disabled:opacity-50 transition shadow-sm hover:shadow-md cursor-pointer"
-                                >
-                                  {isEntering ? (
-                                    <>
-                                      <RotateCw className="w-4 h-4 animate-spin" />
-                                      <span>Connecting to Clinical Session...</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span>Enter Clinic Portal</span>
-                                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {hospitals.map((h, idx) => (
+                        <DesignerHospitalCard
+                          key={h.tenantId || h.code || idx}
+                          hospital={h}
+                          isLinked={true}
+                          isEntering={enteringTenant === (h.tenantId || h.code)}
+                          onEnter={handleEnterHospital}
+                        />
+                      ))}
                     </div>
                   )}
                 </>
@@ -1330,113 +1233,16 @@ export const GlobalPortalPage = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hospitals.map((h, idx) => {
-                const isEntering = enteringTenant === (h.tenantId || h.code);
-                const bannerGradients = [
-                  'from-[#0b192c] via-[#1e3a8a] to-[#0284c7]',
-                  'from-[#042f2e] via-[#0d9488] to-[#06b6d4]',
-                  'from-[#1e1b4b] via-[#4338ca] to-[#3b82f6]',
-                  'from-[#18181b] via-[#27272a] to-[#0284c7]'
-                ];
-                const bannerGrad = bannerGradients[idx % bannerGradients.length];
-
-                return (
-                  <div
+                {hospitals.map((h, idx) => (
+                  <DesignerHospitalCard
                     key={h.tenantId || h.code || idx}
-                    className="bg-white rounded-[26px] border border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group relative"
-                  >
-                    {/* Top Context Banner */}
-                    <div className={`h-20 bg-gradient-to-r ${bannerGrad} p-4 flex items-start justify-between relative overflow-hidden`}>
-                      <div className="absolute right-0 top-0 opacity-15 pointer-events-none transform translate-x-2 -translate-y-2">
-                        <svg width="100" height="80" viewBox="0 0 100 80" fill="white">
-                          <rect x="40" y="10" width="20" height="60" rx="4" />
-                          <rect x="20" y="30" width="60" height="20" rx="4" />
-                        </svg>
-                      </div>
-
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-bold text-white z-10">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span>Active Network Partner</span>
-                      </div>
-
-                      <span className="text-[10px] font-mono font-bold text-white/90 bg-black/25 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-md uppercase z-10">
-                        {h.hospitalId || h.tenantId || h.code}
-                      </span>
-                    </div>
-
-                    {/* Card Content Area */}
-                    <div className="p-5 pt-0 flex-1 flex flex-col justify-between">
-                      <div>
-                        {/* Floating Dynamic Logo Badge Overlapping Banner */}
-                        <div className="flex items-end justify-between -mt-8 mb-3">
-                          <div className="p-1 bg-white rounded-2xl shadow-md border-2 border-white inline-block">
-                            <HospitalBrandLogo hospital={h} size={50} borderRadius={12} fontSize={20} />
-                          </div>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>YOUR CLINIC</span>
-                          </span>
-                        </div>
-
-                        {/* Clinic Title */}
-                        <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition tracking-tight leading-snug">
-                          {h.name}
-                        </h3>
-
-                        {/* Location / Address */}
-                        <p className="text-xs text-slate-500 mt-1 flex items-start gap-1 line-clamp-1">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                          <span>{h.address || [h.city, h.state, h.pincode].filter(Boolean).join(', ') || 'Address on file'}</span>
-                        </p>
-
-                        {/* Clinical Features & Capabilities Chips */}
-                        <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
-                            ⚡ Express OPD
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
-                            📄 ABDM Prescriptions
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100">
-                            🔬 Lab Reports
-                          </span>
-                        </div>
-
-                        {/* Patient Clinical Identifier */}
-                        <div className="mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                          <span className="text-slate-500 font-medium text-[11px]">Clinic MRN</span>
-                          <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
-                            {h.hospitalPatientId || h.clinicMrn || 'PAT-RECORD'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Enter Action Button */}
-                      <div className="mt-5 pt-3 border-t border-slate-100">
-                        <button
-                          type="button"
-                          onClick={() => handleEnterHospital(h)}
-                          disabled={Boolean(enteringTenant)}
-                          className="w-full min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] disabled:opacity-50 transition shadow-sm hover:shadow-md cursor-pointer"
-                        >
-                          {isEntering ? (
-                            <>
-                              <RotateCw className="w-4 h-4 animate-spin" />
-                              <span>Connecting to Clinical Session...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>Enter Clinic Portal</span>
-                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    hospital={h}
+                    isLinked={true}
+                    isEntering={enteringTenant === (h.tenantId || h.code)}
+                    onEnter={handleEnterHospital}
+                  />
+                ))}
+              </div>
             )}
           </div>
         )}

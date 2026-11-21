@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import authService from '../../services/authService';
 import { HospitalBrandLogo } from '../../context/PortalBrandingContext';
+import { DesignerHospitalCard } from './DesignerHospitalCard';
 
 export const NearbyHospitalsExplorer = ({
   onLocationVerified,
@@ -387,103 +388,16 @@ export const NearbyHospitalsExplorer = ({
             <span className="text-xs text-slate-400">Sorted by distance</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {hospitals.map((h) => {
-              const hasDistance = h.distanceKm !== null && h.distanceKm !== undefined;
-              return (
-                <div
-                  key={h.code || h.hospitalId}
-                  className="bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400/80 p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between gap-4"
-                >
-                  <div className="space-y-3">
-                    {/* Top Row: Logo & Distance Pill */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                          <HospitalBrandLogo
-                            logoUrl={h.logo}
-                            hospitalName={h.name}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="text-base font-extrabold text-slate-900 leading-snug">
-                            {h.name}
-                          </h3>
-                          {h.hospitalId && (
-                            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">
-                              ID: {h.hospitalId}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Distance Pill */}
-                      {hasDistance ? (
-                        <span className="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-100 shrink-0 whitespace-nowrap">
-                          {h.distanceKm} km away
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-                          {h.distanceLabel || 'Distance N/A'}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Address */}
-                    {h.address && (
-                      <div className="flex items-start gap-1.5 text-xs text-slate-500">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                        <span className="line-clamp-2 leading-relaxed">{h.address}</span>
-                      </div>
-                    )}
-
-                    {/* Specialties */}
-                    {Array.isArray(h.specialties) && h.specialties.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {h.specialties.slice(0, 3).map((spec, sIdx) => (
-                          <span
-                            key={sIdx}
-                            className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600"
-                          >
-                            {spec}
-                          </span>
-                        ))}
-                        {h.specialties.length > 3 && (
-                          <span className="text-[10px] font-semibold text-slate-400 px-1 py-0.5">
-                            +{h.specialties.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                    {h.phone ? (
-                      <a
-                        href={`tel:${h.phone}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-blue-600 transition"
-                      >
-                        <Phone className="w-3 h-3 text-slate-400" />
-                        <span>Call Reception</span>
-                      </a>
-                    ) : (
-                      <span className="text-[11px] text-slate-400">Reception active</span>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => onSelectHospital && onSelectHospital(h)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition cursor-pointer min-h-[36px]"
-                    >
-                      <span>Enter Clinic Portal</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {hospitals.map((h, idx) => (
+              <DesignerHospitalCard
+                key={h.code || h.hospitalId || idx}
+                hospital={h}
+                isLinked={false}
+                showDistance={true}
+                onEnter={onSelectHospital}
+              />
+            ))}
           </div>
 
           {/* Bottom Completion Bar for Onboarding Flow */}
