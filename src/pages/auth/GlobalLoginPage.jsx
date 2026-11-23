@@ -174,8 +174,8 @@ export const GlobalLoginPage = () => {
       )}
 
       {/* White Card Body */}
-      <div className={`bg-white rounded-[26px] sm:rounded-[32px] shadow-[0_20px_50px_rgba(15,31,61,0.10)] border border-slate-100/90 ${
-        isMobile ? 'px-4.5 py-3.5' : 'px-5 py-4 pt-7 sm:px-7 sm:py-5 sm:pt-8'
+      <div className={`bg-white rounded-[28px] sm:rounded-[34px] shadow-[0_20px_50px_rgba(15,31,61,0.10)] border border-slate-100/90 ${
+        isMobile ? 'px-6 py-6 sm:px-7 sm:py-6.5' : 'px-5 py-4 pt-7 sm:px-7 sm:py-5 sm:pt-8'
       }`}>
         {/* Card Titles */}
         <div className="text-center">
@@ -190,10 +190,10 @@ export const GlobalLoginPage = () => {
             </>
           )}
 
-          <h3 className={`font-black text-[#071a36] tracking-tight ${isMobile ? 'text-lg' : 'text-lg sm:text-xl mt-2 sm:mt-2.5'}`}>
+          <h3 className={`font-black text-[#071a36] tracking-tight ${isMobile ? 'text-xl' : 'text-lg sm:text-xl mt-2 sm:mt-2.5'}`}>
             {step === 'otp' ? 'Verification Code' : 'Welcome back!'}
           </h3>
-          <p className="text-xs text-slate-500 font-medium max-w-[300px] mx-auto mt-0.5 leading-tight">
+          <p className="text-xs text-slate-500 font-medium max-w-[320px] mx-auto mt-1 leading-relaxed">
             {step === 'otp'
               ? `Enter the 6-digit code sent to ${maskedTarget}`
               : 'Sign in with your registered mobile number to access your healthcare information.'}
@@ -202,7 +202,7 @@ export const GlobalLoginPage = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="mt-2 p-2 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-red-700 text-xs animate-fadeIn">
+          <div className="mt-2.5 p-2 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-red-700 text-xs animate-fadeIn">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
             <span className="flex-1 font-medium leading-snug">{error}</span>
           </div>
@@ -210,12 +210,12 @@ export const GlobalLoginPage = () => {
 
         {/* ── STEP 1: MOBILE ENTRY ── */}
         {step === 'phone' && (
-          <form onSubmit={handleSendOtp} className="mt-2.5 sm:mt-3.5 space-y-2 sm:space-y-3">
+          <form onSubmit={handleSendOtp} className="mt-3.5 sm:mt-4 space-y-3.5">
             {/* Mobile Number Input Container */}
-            <div className="rounded-2xl border border-blue-200/90 bg-white hover:border-blue-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/20 transition min-h-[44px] sm:min-h-[48px] px-3.5 flex items-center gap-2.5 shadow-2xs">
+            <div className="rounded-2xl border border-blue-200/90 bg-white hover:border-blue-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/20 transition min-h-[50px] sm:min-h-[52px] px-3.5 flex items-center gap-2.5 shadow-2xs">
               {/* Dark navy circular phone icon */}
-              <div className="w-7 h-7 rounded-full bg-[#071a36] text-white flex items-center justify-center shrink-0">
-                <Phone className="w-3 h-3 fill-white text-white" />
+              <div className="w-8 h-8 rounded-full bg-[#071a36] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Phone className="w-3.5 h-3.5 fill-white text-white" />
               </div>
               {/* Subtle +91 indicator */}
               <span className="text-xs sm:text-sm font-bold text-slate-500 select-none border-r border-slate-200 pr-2">
@@ -234,14 +234,14 @@ export const GlobalLoginPage = () => {
                   setMobile(val);
                   if (error) setError('');
                 }}
-                className="w-full text-sm font-semibold text-slate-800 placeholder:text-slate-400 bg-transparent outline-none"
+                className="w-full text-sm sm:text-base font-semibold text-slate-800 placeholder:text-slate-400 bg-transparent outline-none"
                 disabled={loading}
                 autoFocus
               />
             </div>
 
             {/* Privacy Information Strip (DPDP Act 2023) */}
-            <div className="rounded-2xl bg-[#e8f7f5] border border-[#bbf0e7] py-1.5 px-3 flex items-center justify-between gap-2 transition">
+            <div className="rounded-2xl bg-[#e8f7f5] border border-[#bbf0e7] py-2 px-3.5 flex items-center justify-between gap-2 transition">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-4 h-4 rounded-full bg-[#0d9488] text-white flex items-center justify-center shrink-0">
                   <Check className="w-2.5 h-2.5 stroke-[3]" />
@@ -264,7 +264,7 @@ export const GlobalLoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-[44px] sm:min-h-[48px] rounded-2xl font-bold text-white text-sm sm:text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
+              className="w-full min-h-[50px] sm:min-h-[52px] rounded-2xl font-bold text-white text-sm sm:text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
             >
               {loading ? (
                 <>
@@ -316,7 +316,7 @@ export const GlobalLoginPage = () => {
                   setOtp(val);
                   if (error) setError('');
                 }}
-                className="block w-full text-center tracking-[0.35em] font-mono text-xl sm:text-2xl font-black py-2 min-h-[44px] rounded-2xl border border-blue-200 bg-slate-50/50 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
+                className="block w-full text-center tracking-[0.35em] font-mono text-xl sm:text-2xl font-black py-2.5 min-h-[48px] sm:min-h-[50px] rounded-2xl border border-blue-200 bg-slate-50/50 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
                 disabled={loading}
                 autoFocus
               />
@@ -326,7 +326,7 @@ export const GlobalLoginPage = () => {
             <button
               type="submit"
               disabled={loading || otp.length !== 6}
-              className="w-full min-h-[44px] sm:min-h-[48px] rounded-2xl font-bold text-white text-sm sm:text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
+              className="w-full min-h-[48px] sm:min-h-[50px] rounded-2xl font-bold text-white text-sm sm:text-base bg-gradient-to-r from-[#003d99] via-[#0052cc] to-[#0066f5] hover:from-[#003380] hover:to-[#0052cc] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 tracking-wide cursor-pointer"
             >
               {loading ? (
                 <>
@@ -391,7 +391,7 @@ export const GlobalLoginPage = () => {
         )}
 
         {/* ── OR DIVIDER ── */}
-        <div className="relative my-2 sm:my-3 flex items-center justify-center">
+        <div className="relative my-3 sm:my-3.5 flex items-center justify-center">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-200" />
           </div>
@@ -401,7 +401,7 @@ export const GlobalLoginPage = () => {
         </div>
 
         {/* ── BOTTOM TRUST INDICATORS ── */}
-        <div className="grid grid-cols-3 items-center text-center gap-1 sm:gap-1.5">
+        <div className="grid grid-cols-3 items-center text-center gap-1 sm:gap-1.5 pt-0.5">
           {/* 1. Secure Access */}
           <div className="flex items-center justify-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-[#0284c7] shrink-0" />
@@ -490,9 +490,9 @@ export const GlobalLoginPage = () => {
       </header>
 
       {/* ── MOBILE MAIN CONTENT (< lg: ZERO SCROLL, PROMINENT TOP LOGO, VISIBLE POWERED BY FOOTER) ── */}
-      <main className="relative z-10 w-full max-w-[420px] mx-auto px-4 pt-3 sm:pt-4 pb-0 flex-1 flex flex-col justify-between items-center lg:hidden overflow-hidden">
+      <main className="relative z-10 w-full max-w-[420px] mx-auto px-4 pt-7 sm:pt-9 pb-1 flex-1 flex flex-col justify-between items-center lg:hidden overflow-hidden">
         {/* Top Hero Branding: BIG QUROXA Logo & Title filling the top area */}
-        <div className="w-full text-center shrink-0 pt-1">
+        <div className="w-full text-center shrink-0 pt-1 sm:pt-2">
           <div className="inline-flex items-center justify-center gap-3">
             <img 
               src={curoxaIconLogo} 
@@ -509,7 +509,7 @@ export const GlobalLoginPage = () => {
             </div>
           </div>
 
-          <h1 className="text-lg sm:text-xl font-black text-[#071a36] tracking-tight text-center mt-2 leading-tight">
+          <h1 className="text-lg sm:text-xl font-black text-[#071a36] tracking-tight text-center mt-2.5 leading-tight">
             Your Health. Our Priority.
           </h1>
 
@@ -517,7 +517,7 @@ export const GlobalLoginPage = () => {
             Access medical records, appointments &amp; prescriptions
           </p>
 
-          <div className="w-10 h-[2px] bg-[#14b8a6] rounded-full mx-auto mt-1.5" />
+          <div className="w-10 h-[2px] bg-[#14b8a6] rounded-full mx-auto mt-2" />
         </div>
 
         {/* Mobile Login Card: Perfectly centered in available space */}

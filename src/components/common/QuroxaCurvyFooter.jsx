@@ -14,7 +14,7 @@ export const QuroxaCurvyFooter = ({ className = '', hideText = false }) => {
           viewBox="0 0 1440 96" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg" 
-          className="w-full h-12 sm:h-14 md:h-16 lg:h-18 block"
+          className="w-full h-24 sm:h-26 md:h-28 lg:h-28 block"
           preserveAspectRatio="none"
         >
           {/* Layer 1: Soft Cyan/Teal Under-Wave */}
@@ -52,15 +52,15 @@ export const QuroxaCurvyFooter = ({ className = '', hideText = false }) => {
 
         {/* Floating Brand Label in Deep Navy Base */}
         {!hideText && (
-          <div className="absolute inset-x-0 bottom-1 sm:bottom-1.5 flex items-center justify-center gap-2 pointer-events-none px-4">
-            <span className="w-6 sm:w-12 h-px bg-white/20" />
-            <div className="inline-flex items-center gap-1.5 text-[9px] sm:text-[11px] font-semibold text-white/80 tracking-wider">
+          <div className="absolute inset-x-0 bottom-3 sm:bottom-4 flex items-center justify-center gap-2 pointer-events-none px-4">
+            <span className="w-8 sm:w-14 h-px bg-white/25" />
+            <div className="inline-flex items-center gap-1.5 text-[10.5px] sm:text-xs font-semibold text-white/90 tracking-wider">
               <span>Powered by</span>
               <strong className="font-black text-white tracking-widest uppercase">
                 QUROXA
               </strong>
             </div>
-            <span className="w-6 sm:w-12 h-px bg-white/20" />
+            <span className="w-8 sm:w-14 h-px bg-white/25" />
           </div>
         )}
       </div>
